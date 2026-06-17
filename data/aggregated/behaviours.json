@@ -1,0 +1,193 @@
+{
+  "smoking_overall": [
+    {
+      "smoking_status": "Never",
+      "n": 2583,
+      "pct": 51.7
+    },
+    {
+      "smoking_status": "Former",
+      "n": 1216,
+      "pct": 24.3
+    },
+    {
+      "smoking_status": "Current \u2013 daily",
+      "n": 705,
+      "pct": 14.1
+    },
+    {
+      "smoking_status": "Current \u2013 occasional",
+      "n": 496,
+      "pct": 9.9
+    }
+  ],
+  "smoking_by_age": [
+    {
+      "age_group": "18\u201324",
+      "smoking_status": "Never",
+      "pct": 49.0
+    },
+    {
+      "age_group": "18\u201324",
+      "smoking_status": "Former",
+      "pct": 24.4
+    },
+    {
+      "age_group": "18\u201324",
+      "smoking_status": "Current \u2013 daily",
+      "pct": 16.5
+    },
+    {
+      "age_group": "18\u201324",
+      "smoking_status": "Current \u2013 occasional",
+      "pct": 10.2
+    },
+    {
+      "age_group": "25\u201334",
+      "smoking_status": "Never",
+      "pct": 53.1
+    },
+    {
+      "age_group": "25\u201334",
+      "smoking_status": "Former",
+      "pct": 25.5
+    },
+    {
+      "age_group": "25\u201334",
+      "smoking_status": "Current \u2013 daily",
+      "pct": 11.7
+    },
+    {
+      "age_group": "25\u201334",
+      "smoking_status": "Current \u2013 occasional",
+      "pct": 9.6
+    },
+    {
+      "age_group": "35\u201344",
+      "smoking_status": "Never",
+      "pct": 51.1
+    },
+    {
+      "age_group": "35\u201344",
+      "smoking_status": "Former",
+      "pct": 23.8
+    },
+    {
+      "age_group": "35\u201344",
+      "smoking_status": "Current \u2013 daily",
+      "pct": 16.2
+    },
+    {
+      "age_group": "35\u201344",
+      "smoking_status": "Current \u2013 occasional",
+      "pct": 8.9
+    },
+    {
+      "age_group": "45\u201354",
+      "smoking_status": "Never",
+      "pct": 49.4
+    },
+    {
+      "age_group": "45\u201354",
+      "smoking_status": "Former",
+      "pct": 25.6
+    },
+    {
+      "age_group": "45\u201354",
+      "smoking_status": "Current \u2013 daily",
+      "pct": 14.5
+    },
+    {
+      "age_group": "45\u201354",
+      "smoking_status": "Current \u2013 occasional",
+      "pct": 10.6
+    },
+    {
+      "age_group": "55\u201364",
+      "smoking_status": "Never",
+      "pct": 52.4
+    },
+    {
+      "age_group": "55\u201364",
+      "smoking_status": "Former",
+      "pct": 24.7
+    },
+    {
+      "age_group": "55\u201364",
+      "smoking_status": "Current \u2013 daily",
+      "pct": 12.4
+    },
+    {
+      "age_group": "55\u201364",
+      "smoking_status": "Current \u2013 occasional",
+      "pct": 10.5
+    },
+    {
+      "age_group": "65\u201374",
+      "smoking_status": "Never",
+      "pct": 51.9
+    },
+    {
+      "age_group": "65\u201374",
+      "smoking_status": "Former",
+      "pct": 23.2
+    },
+    {
+      "age_group": "65\u201374",
+      "smoking_status": "Current \u2013 daily",
+      "pct": 15.1
+    },
+    {
+      "age_group": "65\u201374",
+      "smoking_status": "Current \u2013 occasional",
+      "pct": 9.7
+    },
+    {
+      "age_group": "75+",
+      "smoking_status": "Never",
+      "pct": 55.0
+    },
+    {
+      "age_group": "75+",
+      "smoking_status": "Former",
+      "pct": 22.2
+    },
+    {
+      "age_group": "75+",
+      "smoking_status": "Current \u2013 daily",
+      "pct": 12.7
+    },
+    {
+      "age_group": "75+",
+      "smoking_status": "Current \u2013 occasional",
+      "pct": 10.1
+    }
+  ],
+  "alcohol_overall": [
+    {
+      "alcohol_frequency": "1\u20132 times/week",
+      "n": 1416,
+      "pct": 28.3
+    },
+    {
+      "alcohol_frequency": "1\u20133 times/month",
+      "n": 1107,
+      "pct": 22.1
+    },
+    {
+      "alcohol_frequency": "Less than once/month",
+      "n": 919,
+      "pct": 18.4
+    },
+    {
+      "alcohol_frequency": "3+ times/week",
+      "n": 791,
+      "pct": 15.8
+    },
+    {
+      "alcohol_frequency": "Never",
+      "n": 767,
+      "pct": 15.3
+    }
+  ]
+}

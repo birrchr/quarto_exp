@@ -1,0 +1,432 @@
+{
+  "order": [
+    "Excellent",
+    "Very good",
+    "Good",
+    "Fair",
+    "Poor"
+  ],
+  "overall": [
+    {
+      "self_rated_health": "Excellent",
+      "n": 1716,
+      "pct": 34.3
+    },
+    {
+      "self_rated_health": "Fair",
+      "n": 612,
+      "pct": 12.2
+    },
+    {
+      "self_rated_health": "Good",
+      "n": 1114,
+      "pct": 22.3
+    },
+    {
+      "self_rated_health": "Poor",
+      "n": 182,
+      "pct": 3.6
+    },
+    {
+      "self_rated_health": "Very good",
+      "n": 1376,
+      "pct": 27.5
+    }
+  ],
+  "by_age": [
+    {
+      "age_group": "18\u201324",
+      "self_rated_health": "Excellent",
+      "pct": 62.5
+    },
+    {
+      "age_group": "18\u201324",
+      "self_rated_health": "Fair",
+      "pct": 1.1
+    },
+    {
+      "age_group": "18\u201324",
+      "self_rated_health": "Good",
+      "pct": 10.7
+    },
+    {
+      "age_group": "18\u201324",
+      "self_rated_health": "Poor",
+      "pct": 0.2
+    },
+    {
+      "age_group": "18\u201324",
+      "self_rated_health": "Very good",
+      "pct": 25.5
+    },
+    {
+      "age_group": "25\u201334",
+      "self_rated_health": "Excellent",
+      "pct": 58.0
+    },
+    {
+      "age_group": "25\u201334",
+      "self_rated_health": "Fair",
+      "pct": 3.2
+    },
+    {
+      "age_group": "25\u201334",
+      "self_rated_health": "Good",
+      "pct": 10.7
+    },
+    {
+      "age_group": "25\u201334",
+      "self_rated_health": "Poor",
+      "pct": 0.7
+    },
+    {
+      "age_group": "25\u201334",
+      "self_rated_health": "Very good",
+      "pct": 27.4
+    },
+    {
+      "age_group": "35\u201344",
+      "self_rated_health": "Excellent",
+      "pct": 42.2
+    },
+    {
+      "age_group": "35\u201344",
+      "self_rated_health": "Fair",
+      "pct": 6.6
+    },
+    {
+      "age_group": "35\u201344",
+      "self_rated_health": "Good",
+      "pct": 20.2
+    },
+    {
+      "age_group": "35\u201344",
+      "self_rated_health": "Poor",
+      "pct": 0.2
+    },
+    {
+      "age_group": "35\u201344",
+      "self_rated_health": "Very good",
+      "pct": 30.8
+    },
+    {
+      "age_group": "45\u201354",
+      "self_rated_health": "Excellent",
+      "pct": 31.7
+    },
+    {
+      "age_group": "45\u201354",
+      "self_rated_health": "Fair",
+      "pct": 12.8
+    },
+    {
+      "age_group": "45\u201354",
+      "self_rated_health": "Good",
+      "pct": 21.4
+    },
+    {
+      "age_group": "45\u201354",
+      "self_rated_health": "Poor",
+      "pct": 2.5
+    },
+    {
+      "age_group": "45\u201354",
+      "self_rated_health": "Very good",
+      "pct": 31.6
+    },
+    {
+      "age_group": "55\u201364",
+      "self_rated_health": "Excellent",
+      "pct": 19.6
+    },
+    {
+      "age_group": "55\u201364",
+      "self_rated_health": "Fair",
+      "pct": 14.0
+    },
+    {
+      "age_group": "55\u201364",
+      "self_rated_health": "Good",
+      "pct": 29.8
+    },
+    {
+      "age_group": "55\u201364",
+      "self_rated_health": "Poor",
+      "pct": 5.8
+    },
+    {
+      "age_group": "55\u201364",
+      "self_rated_health": "Very good",
+      "pct": 30.8
+    },
+    {
+      "age_group": "65\u201374",
+      "self_rated_health": "Excellent",
+      "pct": 13.5
+    },
+    {
+      "age_group": "65\u201374",
+      "self_rated_health": "Fair",
+      "pct": 23.4
+    },
+    {
+      "age_group": "65\u201374",
+      "self_rated_health": "Good",
+      "pct": 32.5
+    },
+    {
+      "age_group": "65\u201374",
+      "self_rated_health": "Poor",
+      "pct": 7.3
+    },
+    {
+      "age_group": "65\u201374",
+      "self_rated_health": "Very good",
+      "pct": 23.2
+    },
+    {
+      "age_group": "75+",
+      "self_rated_health": "Excellent",
+      "pct": 8.8
+    },
+    {
+      "age_group": "75+",
+      "self_rated_health": "Fair",
+      "pct": 29.0
+    },
+    {
+      "age_group": "75+",
+      "self_rated_health": "Good",
+      "pct": 32.3
+    },
+    {
+      "age_group": "75+",
+      "self_rated_health": "Poor",
+      "pct": 10.8
+    },
+    {
+      "age_group": "75+",
+      "self_rated_health": "Very good",
+      "pct": 19.1
+    }
+  ],
+  "by_gender": [
+    {
+      "gender": "Man",
+      "self_rated_health": "Excellent",
+      "pct": 34.1
+    },
+    {
+      "gender": "Man",
+      "self_rated_health": "Fair",
+      "pct": 12.2
+    },
+    {
+      "gender": "Man",
+      "self_rated_health": "Good",
+      "pct": 21.3
+    },
+    {
+      "gender": "Man",
+      "self_rated_health": "Poor",
+      "pct": 3.9
+    },
+    {
+      "gender": "Man",
+      "self_rated_health": "Very good",
+      "pct": 28.5
+    },
+    {
+      "gender": "Non-binary / Other",
+      "self_rated_health": "Excellent",
+      "pct": 36.0
+    },
+    {
+      "gender": "Non-binary / Other",
+      "self_rated_health": "Fair",
+      "pct": 10.7
+    },
+    {
+      "gender": "Non-binary / Other",
+      "self_rated_health": "Good",
+      "pct": 20.0
+    },
+    {
+      "gender": "Non-binary / Other",
+      "self_rated_health": "Very good",
+      "pct": 33.3
+    },
+    {
+      "gender": "Prefer not to say",
+      "self_rated_health": "Excellent",
+      "pct": 35.7
+    },
+    {
+      "gender": "Prefer not to say",
+      "self_rated_health": "Fair",
+      "pct": 10.7
+    },
+    {
+      "gender": "Prefer not to say",
+      "self_rated_health": "Good",
+      "pct": 26.8
+    },
+    {
+      "gender": "Prefer not to say",
+      "self_rated_health": "Very good",
+      "pct": 26.8
+    },
+    {
+      "gender": "Woman",
+      "self_rated_health": "Excellent",
+      "pct": 34.5
+    },
+    {
+      "gender": "Woman",
+      "self_rated_health": "Fair",
+      "pct": 12.4
+    },
+    {
+      "gender": "Woman",
+      "self_rated_health": "Good",
+      "pct": 23.2
+    },
+    {
+      "gender": "Woman",
+      "self_rated_health": "Poor",
+      "pct": 3.4
+    },
+    {
+      "gender": "Woman",
+      "self_rated_health": "Very good",
+      "pct": 26.5
+    }
+  ],
+  "by_income": [
+    {
+      "income_bracket": "$100K\u2013$149K",
+      "self_rated_health": "Excellent",
+      "pct": 52.4
+    },
+    {
+      "income_bracket": "$100K\u2013$149K",
+      "self_rated_health": "Fair",
+      "pct": 4.4
+    },
+    {
+      "income_bracket": "$100K\u2013$149K",
+      "self_rated_health": "Good",
+      "pct": 14.1
+    },
+    {
+      "income_bracket": "$100K\u2013$149K",
+      "self_rated_health": "Poor",
+      "pct": 0.1
+    },
+    {
+      "income_bracket": "$100K\u2013$149K",
+      "self_rated_health": "Very good",
+      "pct": 29.0
+    },
+    {
+      "income_bracket": "$150K+",
+      "self_rated_health": "Excellent",
+      "pct": 60.5
+    },
+    {
+      "income_bracket": "$150K+",
+      "self_rated_health": "Fair",
+      "pct": 3.1
+    },
+    {
+      "income_bracket": "$150K+",
+      "self_rated_health": "Good",
+      "pct": 11.8
+    },
+    {
+      "income_bracket": "$150K+",
+      "self_rated_health": "Poor",
+      "pct": 0.2
+    },
+    {
+      "income_bracket": "$150K+",
+      "self_rated_health": "Very good",
+      "pct": 24.4
+    },
+    {
+      "income_bracket": "$30K\u2013$59K",
+      "self_rated_health": "Excellent",
+      "pct": 24.1
+    },
+    {
+      "income_bracket": "$30K\u2013$59K",
+      "self_rated_health": "Fair",
+      "pct": 16.1
+    },
+    {
+      "income_bracket": "$30K\u2013$59K",
+      "self_rated_health": "Good",
+      "pct": 27.2
+    },
+    {
+      "income_bracket": "$30K\u2013$59K",
+      "self_rated_health": "Poor",
+      "pct": 4.4
+    },
+    {
+      "income_bracket": "$30K\u2013$59K",
+      "self_rated_health": "Very good",
+      "pct": 28.2
+    },
+    {
+      "income_bracket": "$60K\u2013$99K",
+      "self_rated_health": "Excellent",
+      "pct": 38.5
+    },
+    {
+      "income_bracket": "$60K\u2013$99K",
+      "self_rated_health": "Fair",
+      "pct": 9.1
+    },
+    {
+      "income_bracket": "$60K\u2013$99K",
+      "self_rated_health": "Good",
+      "pct": 21.3
+    },
+    {
+      "income_bracket": "$60K\u2013$99K",
+      "self_rated_health": "Poor",
+      "pct": 0.9
+    },
+    {
+      "income_bracket": "$60K\u2013$99K",
+      "self_rated_health": "Very good",
+      "pct": 30.2
+    },
+    {
+      "income_bracket": "Under $30K",
+      "self_rated_health": "Excellent",
+      "pct": 8.6
+    },
+    {
+      "income_bracket": "Under $30K",
+      "self_rated_health": "Fair",
+      "pct": 24.7
+    },
+    {
+      "income_bracket": "Under $30K",
+      "self_rated_health": "Good",
+      "pct": 31.2
+    },
+    {
+      "income_bracket": "Under $30K",
+      "self_rated_health": "Poor",
+      "pct": 12.4
+    },
+    {
+      "income_bracket": "Under $30K",
+      "self_rated_health": "Very good",
+      "pct": 23.1
+    }
+  ]
+}
