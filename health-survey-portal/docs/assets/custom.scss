@@ -1,0 +1,158 @@
+/*-- scss:defaults --*/
+
+// Brand palette — soft teal & slate inspired by public health communications
+$primary:       #1a7f8e;
+$secondary:     #5a8fa3;
+$success:       #2e8b57;
+$warning:       #e6a817;
+$danger:        #c0392b;
+$light:         #f4f8fb;
+$dark:          #1e2d3d;
+
+$font-family-sans-serif: "Inter", "Segoe UI", system-ui, sans-serif;
+$font-family-monospace: "JetBrains Mono", "Fira Code", monospace;
+$headings-font-weight: 600;
+$body-color: #2d3e50;
+$link-color: $primary;
+
+// Card defaults
+$card-border-radius: 0.75rem;
+$border-radius: 0.5rem;
+
+/*-- scss:rules --*/
+
+// Pull in Inter from Google Fonts
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+
+// Navbar refinements
+.navbar {
+  border-bottom: 2px solid rgba($primary, 0.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+.navbar-brand {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: $primary !important;
+}
+
+// Hero section on the home page
+.hero-banner {
+  background: linear-gradient(135deg, #0f4c5c 0%, #1a7f8e 50%, #2fa8b8 100%);
+  color: white;
+  padding: 4rem 2rem;
+  border-radius: 1rem;
+  margin-bottom: 2rem;
+  
+  h1 { font-size: 2.6rem; font-weight: 700; color: white; }
+  p  { font-size: 1.15rem; opacity: 0.92; }
+  .badge-pill {
+    background: rgba(white, 0.2);
+    border: 1px solid rgba(white, 0.4);
+    border-radius: 2rem;
+    padding: 0.3rem 0.9rem;
+    font-size: 0.85rem;
+    display: inline-block;
+    margin-top: 1rem;
+  }
+}
+
+// KPI cards
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.2rem;
+  margin: 2rem 0;
+}
+.kpi-card {
+  background: white;
+  border: 1px solid #dde8f0;
+  border-radius: 0.75rem;
+  padding: 1.4rem 1.2rem;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  text-align: center;
+  transition: box-shadow 0.2s;
+  
+  &:hover { box-shadow: 0 4px 16px rgba($primary, 0.15); }
+  
+  .kpi-value {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: $primary;
+    line-height: 1.1;
+  }
+  .kpi-label {
+    font-size: 0.82rem;
+    color: #6c8090;
+    margin-top: 0.35rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .kpi-icon {
+    font-size: 1.6rem;
+    margin-bottom: 0.5rem;
+  }
+}
+
+// Section headers
+.section-header {
+  border-left: 4px solid $primary;
+  padding-left: 0.9rem;
+  margin: 2.5rem 0 1.5rem;
+  
+  h2, h3 { margin: 0; }
+  p { color: #607080; font-size: 0.95rem; margin-top: 0.3rem; }
+}
+
+// Stat callout boxes
+.stat-callout {
+  background: linear-gradient(135deg, rgba($primary, 0.06), rgba($secondary, 0.04));
+  border: 1px solid rgba($primary, 0.2);
+  border-radius: 0.75rem;
+  padding: 1.2rem 1.5rem;
+  margin: 1.5rem 0;
+  
+  strong { color: $primary; }
+}
+
+// Chart containers
+.chart-container {
+  background: white;
+  border: 1px solid #e0eaf2;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+// Note / caveat boxes
+.data-note {
+  background: #fff8e6;
+  border-left: 4px solid $warning;
+  padding: 0.9rem 1.1rem;
+  border-radius: 0 0.5rem 0.5rem 0;
+  font-size: 0.88rem;
+  color: #5a4a1a;
+  margin: 1rem 0;
+}
+
+// Footer
+.page-footer {
+  border-top: 1px solid #dde8f0;
+  color: #7a8c9a;
+  font-size: 0.85rem;
+}
+
+// Code blocks
+pre {
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+}
+
+// Dark mode overrides
+[data-bs-theme="dark"] {
+  .kpi-card   { background: #1e2d3d; border-color: #2d4055; }
+  .chart-container { background: #1a2535; border-color: #2d4055; }
+  .stat-callout    { background: rgba($primary, 0.12); }
+}

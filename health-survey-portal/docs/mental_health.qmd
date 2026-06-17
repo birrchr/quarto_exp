@@ -1,0 +1,145 @@
+---
+title: "Mental Health"
+subtitle: "PHQ-4 proxy scores, depression, anxiety, and correlations with health outcomes"
+---
+
+```{python}
+#| echo: false
+import sys
+sys.path.insert(0, "docs/assets")
+from portal_helpers import load, fig_defaults, kpi_row, data_note, COLORS
+import plotly.graph_objects as go
+import pandas as pd
+
+data = load("mental_health")
+```
+
+The survey included a PHQ-4 proxy — a condensed four-item questionnaire capturing anxiety and
+depression symptoms. Scores range from 0 (minimal distress) to 12 (severe distress).
+
+---
+
+::: {.section-header}
+## Mean PHQ-4 score by age and gender
+:::
+
+```{python}
+#| echo: false
+mh_df = pd.DataFrame(data["mh_by_age_gender"])
+age_groups = sorted(mh_df["age_group"].unique().tolist())
+
+fig = go.Figure()
+for gender, clr in [("Man", COLORS["primary"]), ("Woman", COLORS["danger"])]:
+    subset = mh_df[mh_df["gender"] == gender]
+    vals   = []
+    for ag in age_groups:
+        row = subset[subset["age_group"] == ag]
+        vals.append(float(row["mean_score"].values[0]) if len(row) else None)
+    fig.add_trace(go.Scatter(
+        x=age_groups, y=vals,
+        mode="lines+markers",
+        name=gender,
+        line=dict(color=clr, width=2.5),
+        marker=dict(size=9),
+        hovertemplate=f"{gender}: %{{y:.2f}}<extra></extra>",
+    ))
+
+# Reference lines for PHQ-4 severity thresholds
+for y_val, label, clr in [(3, "Mild (≥3)", "#e6a817"), (6, "Moderate (≥6)", "#c0392b")]:
+    fig.add_hline(y=y_val, line_dash="dot", line_color=clr, line_width=1.5,
+                  annotation_text=label, annotation_position="right")
+
+fig.update_layout(yaxis_title="Mean PHQ-4 score (0–12)", xaxis_title="Age group")
+fig_defaults(fig, "Mental Health Score by Age Group and Gender", height=400).show()
+```
+
+---
+
+::: {.section-header}
+## Depression and anxiety prevalence by age
+*% reporting at least minimal symptoms*
+:::
+
+```{python}
+#| echo: false
+dep_anx = pd.DataFrame(data["dep_anx_by_age"])
+ages = dep_anx["age_group"].tolist()
+
+fig = go.Figure()
+fig.add_trace(go.Bar(
+    x=ages, y=dep_anx["pct_depression"],
+    name="Depression", marker_color=COLORS["danger"],
+    hovertemplate="Depression: %{y:.1f}%<extra></extra>",
+))
+fig.add_trace(go.Bar(
+    x=ages, y=dep_anx["pct_anxiety"],
+    name="Anxiety", marker_color=COLORS["warning"],
+    hovertemplate="Anxiety: %{y:.1f}%<extra></extra>",
+))
+fig.update_layout(
+    barmode="group",
+    yaxis_title="Prevalence (%)",
+    xaxis_title="Age group",
+)
+fig_defaults(fig, "Depression & Anxiety Prevalence by Age Group", height=400).show()
+```
+
+---
+
+::: {.section-header}
+## Correlations with other health measures
+*Pearson r with 95% CI (pingouin)*
+:::
+
+```{python}
+#| echo: false
+corr_df = pd.DataFrame(data["correlations"])
+# Focus on mental_health_score as Y variable
+focus = corr_df[corr_df["Y"] == "mental_health_score"].copy()
+
+var_labels = {
+    "chronic_count": "# Chronic conditions",
+    "er_visits_12mo": "ER visits (12 mo)",
+    "bmi": "BMI",
+}
+
+fig = go.Figure()
+for _, row in focus.iterrows():
+    x_var  = row["X"]
+    label  = var_labels.get(x_var, x_var)
+    r_val  = row["r"]
+    ci_lo, ci_hi = row["CI95%"]
+    clr    = COLORS["danger"] if r_val > 0.2 else COLORS["primary"] if r_val > 0 else COLORS["success"]
+    fig.add_trace(go.Scatter(
+        x=[r_val],
+        y=[label],
+        mode="markers",
+        marker=dict(size=14, color=clr),
+        error_x=dict(
+            type="data",
+            array=[ci_hi - r_val],
+            arrayminus=[r_val - ci_lo],
+            color=clr, thickness=2,
+        ),
+        name=label,
+        hovertemplate=f"r = {r_val:.3f} [{ci_lo:.3f}, {ci_hi:.3f}]<extra>{label}</extra>",
+    ))
+
+fig.add_vline(x=0, line_dash="dash", line_color="#aaa", line_width=1)
+fig.update_layout(
+    xaxis_title="Pearson r (with 95% CI)",
+    xaxis_range=[-0.5, 0.8],
+    showlegend=False,
+)
+fig_defaults(fig, "Correlation with Mental Health Score (PHQ-4)", height=320).show()
+```
+
+::: {.stat-callout}
+The strongest correlation with mental health distress is **number of chronic conditions** (r ≈ 0.5),
+highlighting the bidirectional relationship between physical and mental health.
+:::
+
+```{python}
+#| echo: false
+data_note("PHQ-4 scores are a proxy only — the CanHealth survey did not administer the validated PHQ-4 instrument. Interpret with caution.")
+```

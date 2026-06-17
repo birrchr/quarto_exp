@@ -1,0 +1,31 @@
+{
+  "survey_name": "CanHealth 2024 (Fictitious)",
+  "n_respondents": 5000,
+  "variables": {
+    "province": "Province of residence",
+    "age_group": "Age group (7 bands, 18+)",
+    "gender": "Gender identity",
+    "income_bracket": "Household annual income before tax",
+    "education": "Highest educational attainment",
+    "survey_weight": "Post-stratification survey weight (mean \u2248 1.0)",
+    "self_rated_health": "Self-rated general health (5-point scale)",
+    "physical_activity": "Weekly physical activity level",
+    "smoking_status": "Cigarette smoking status",
+    "alcohol_frequency": "Frequency of alcohol consumption",
+    "bmi": "Body Mass Index (continuous, kg/m\u00b2)",
+    "mental_health_score": "PHQ-4 proxy score (0\u201312, higher = worse)",
+    "has_family_doctor": "Has a regular family doctor (0/1)",
+    "unmet_care_need": "Reported an unmet healthcare need in past 12 months (0/1)",
+    "er_visits_12mo": "Emergency room visits in past 12 months (count)",
+    "hypertension": "Has hypertension diagnosis (0/1)",
+    "diabetes": "Has diabetes diagnosis (0/1)",
+    "asthma": "Has asthma diagnosis (0/1)",
+    "depression": "Has depression diagnosis (0/1)",
+    "anxiety": "Has anxiety diagnosis (0/1)",
+    "arthritis": "Has arthritis diagnosis (0/1)",
+    "heart_disease": "Has heart disease diagnosis (0/1)",
+    "cancer_history": "Has cancer history diagnosis (0/1)",
+    "any_chronic": "Has at least one chronic condition (0/1)",
+    "chronic_count": "Number of chronic conditions (count)"
+  }
+}

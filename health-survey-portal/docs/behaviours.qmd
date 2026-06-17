@@ -1,0 +1,109 @@
+---
+title: "Health Behaviours"
+subtitle: "Smoking and alcohol consumption patterns"
+---
+
+```{python}
+#| echo: false
+import sys
+sys.path.insert(0, "docs/assets")
+from portal_helpers import load, fig_defaults, kpi_row, data_note, COLORS
+import plotly.graph_objects as go
+import plotly.express as px
+import pandas as pd
+
+data = load("behaviours")
+```
+
+Health behaviours such as tobacco use and alcohol consumption are key modifiable risk factors.
+This section examines their distribution across the survey population.
+
+---
+
+::: {.section-header}
+## Smoking status — overall
+:::
+
+```{python}
+#| echo: false
+smoking_df = pd.DataFrame(data["smoking_overall"])
+
+fig = go.Figure(go.Pie(
+    labels=smoking_df["smoking_status"],
+    values=smoking_df["pct"],
+    hole=0.45,
+    marker_colors=[COLORS["success"], COLORS["secondary"], COLORS["warning"], COLORS["danger"]],
+    textinfo="label+percent",
+    hovertemplate="%{label}: %{value:.1f}%<extra></extra>",
+))
+fig.update_layout(showlegend=True)
+fig_defaults(fig, "Smoking Status — All Respondents", height=380).show()
+```
+
+---
+
+::: {.section-header}
+## Smoking by age group
+*Current smoking rates tend to decline in older cohorts (cohort effect)*
+:::
+
+```{python}
+#| echo: false
+by_age_df = pd.DataFrame(data["smoking_by_age"])
+age_groups = sorted(by_age_df["age_group"].unique().tolist())
+statuses   = ["Never", "Former", "Current – occasional", "Current – daily"]
+pal = [COLORS["success"], COLORS["secondary"], COLORS["warning"], COLORS["danger"]]
+
+fig = go.Figure()
+for status, clr in zip(statuses, pal):
+    subset = by_age_df[by_age_df["smoking_status"] == status]
+    vals   = []
+    for ag in age_groups:
+        row = subset[subset["age_group"] == ag]
+        vals.append(float(row["pct"].values[0]) if len(row) else 0)
+    fig.add_trace(go.Bar(name=status, x=age_groups, y=vals, marker_color=clr))
+
+fig.update_layout(
+    barmode="stack",
+    yaxis_title="% of age group",
+    xaxis_title="Age group",
+)
+fig_defaults(fig, "Smoking Status by Age Group", height=430).show()
+```
+
+---
+
+::: {.section-header}
+## Alcohol consumption frequency
+:::
+
+```{python}
+#| echo: false
+alc_df = pd.DataFrame(data["alcohol_overall"])
+order  = [
+    "Never",
+    "Less than once/month",
+    "1–3 times/month",
+    "1–2 times/week",
+    "3+ times/week",
+]
+alc_df["alcohol_frequency"] = pd.Categorical(alc_df["alcohol_frequency"], categories=order, ordered=True)
+alc_df = alc_df.sort_values("alcohol_frequency")
+
+pal_alc = ["#2e8b57", "#5a8fa3", "#1a7f8e", "#e6a817", "#c0392b"]
+fig = go.Figure(go.Bar(
+    x=alc_df["alcohol_frequency"],
+    y=alc_df["pct"],
+    marker_color=pal_alc,
+    text=[f"{p}%" for p in alc_df["pct"]],
+    textposition="outside",
+    hovertemplate="%{x}: %{y:.1f}%<extra></extra>",
+))
+fig.update_layout(yaxis_title="% of respondents", xaxis_title="Frequency")
+fig_defaults(fig, "Alcohol Consumption Frequency", height=380).show()
+```
+
+```{python}
+#| echo: false
+data_note("Smoking and alcohol questions are subject to self-report bias. Actual consumption rates may differ from reported rates.")
+```

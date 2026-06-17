@@ -1,0 +1,80 @@
+project:
+  type: website
+  output-dir: _site # Tell Quarto to copy aggregated data into the built site
+  execute-dir: project   # <-- This MUST go here to apply to the whole project!
+  resources:
+    - data/aggregated/
+
+website:
+  title: "CanHealth 2024"
+  description: "Fictitious National Health Survey — Interactive Data Portal"
+  favicon: docs/assets/favicon.ico
+  
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: docs/overview.qmd
+        text: Survey Overview
+      - text: "Results"
+        menu:
+          - href: docs/self_rated_health.qmd
+            text: "Self-Rated Health"
+          - href: docs/chronic.qmd
+            text: "Chronic Conditions"
+          - href: docs/bmi_activity.qmd
+            text: "BMI & Physical Activity"
+          - href: docs/mental_health.qmd
+            text: "Mental Health"
+          - href: docs/behaviours.qmd
+            text: "Health Behaviours"
+          - href: docs/healthcare_access.qmd
+            text: "Healthcare Access"
+      - href: docs/methods.qmd
+        text: Methods
+    right:
+      - icon: github
+        href: https://github.com/YOUR_USERNAME/health-survey-portal
+
+  page-footer:
+    left: |
+      CanHealth 2024 is a **fictitious** survey for demonstration purposes only.
+    right: |
+      Built with [Quarto](https://quarto.org) · [Plotly](https://plotly.com) · [DuckDB](https://duckdb.org)
+
+  sidebar: false
+
+  # Open Graph / Twitter card metadata
+  open-graph: true
+  twitter-card: true
+
+format:
+  html:
+    theme:
+      light: [flatly, docs/assets/custom.scss]
+      dark: [darkly, docs/assets/custom.scss]
+    toc: true
+    toc-depth: 3
+    code-fold: true
+    code-tools: true
+    code-copy: true
+    fig-width: 9
+    fig-height: 5.5
+    fig-align: center
+    df-print: paged
+    # Embed plotly.js from CDN — keeps pages self-contained without a huge bundle
+    include-in-header:
+      - text: |
+          <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+
+execute:
+  freeze: auto          # re-render only if source changes
+  cache: false           # cache heavy computations
+  echo: false           # hide code by default (users can expand with code-fold)
+  warning: false
+  message: false
+
+# Enable interactive widgets
+jupyter: .venv/bin/python
+
+

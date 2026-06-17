@@ -1,0 +1,151 @@
+---
+title: "Self-Rated Health"
+subtitle: "How Canadians perceive their own general health"
+---
+
+```{python}
+#| echo: false
+import sys
+sys.path.insert(0, "docs/assets")
+from portal_helpers import load, fig_defaults, kpi_row, data_note, COLORS
+import plotly.graph_objects as go
+import plotly.express as px
+import pandas as pd
+
+data = load("self_rated_health")
+order = data["order"]
+colors = COLORS["health_scale"]  # Poor → Excellent
+color_map = dict(zip(order, colors))
+```
+
+Self-rated health (SRH) is one of the strongest single predictors of future health outcomes,
+including mortality. Respondents were asked: *"In general, would you say your health is…?"*
+with five response options.
+
+---
+
+::: {.section-header}
+## Overall distribution
+*All respondents, unweighted*
+:::
+
+```{python}
+#| echo: false
+overall = {r["self_rated_health"]: r["pct"] for r in data["overall"]}
+pcts    = [overall.get(h, 0) for h in order]
+
+fig = go.Figure(go.Bar(
+    x=order, y=pcts,
+    marker_color=colors,
+    text=[f"{p}%" for p in pcts],
+    textposition="outside",
+    hovertemplate="%{x}: %{y:.1f}%<extra></extra>",
+))
+fig.update_layout(yaxis_title="% of respondents", xaxis_title="")
+fig_defaults(fig, "Self-Rated Health — Overall", height=370).show()
+```
+
+---
+
+::: {.section-header}
+## By age group
+*Older age groups typically report poorer self-rated health*
+:::
+
+```{python}
+#| echo: false
+by_age_df = pd.DataFrame(data["by_age"])
+age_groups = sorted(by_age_df["age_group"].unique().tolist())
+
+fig = go.Figure()
+for srh_cat, clr in zip(order, colors):
+    subset = by_age_df[by_age_df["self_rated_health"] == srh_cat]
+    # Align to age_groups order
+    vals = []
+    for ag in age_groups:
+        row = subset[subset["age_group"] == ag]
+        vals.append(float(row["pct"].values[0]) if len(row) else 0)
+    fig.add_trace(go.Bar(
+        name=srh_cat,
+        x=age_groups,
+        y=vals,
+        marker_color=clr,
+        hovertemplate=f"{srh_cat}: %{{y:.1f}}%<extra></extra>",
+    ))
+
+fig.update_layout(barmode="stack", yaxis_title="% of age group", xaxis_title="Age group")
+fig_defaults(fig, "Self-Rated Health by Age Group", height=420).show()
+```
+
+::: {.stat-callout}
+The health gradient is clear: respondents aged **75+** are roughly **3× more likely** to
+rate their health as *Fair* or *Poor* compared to those aged **18–24**.
+:::
+
+---
+
+::: {.section-header}
+## By income bracket
+*Income is one of the strongest social determinants of health*
+:::
+
+```{python}
+#| echo: false
+by_income_df = pd.DataFrame(data["by_income"])
+income_cats  = ["Under $30K", "$30K–$59K", "$60K–$99K", "$100K–$149K", "$150K+"]
+
+fig = go.Figure()
+for srh_cat, clr in zip(order, colors):
+    subset = by_income_df[by_income_df["self_rated_health"] == srh_cat]
+    vals = []
+    for inc in income_cats:
+        row = subset[subset["income_bracket"] == inc]
+        vals.append(float(row["pct"].values[0]) if len(row) else 0)
+    fig.add_trace(go.Bar(
+        name=srh_cat,
+        x=income_cats,
+        y=vals,
+        marker_color=clr,
+    ))
+
+fig.update_layout(barmode="stack", yaxis_title="% of income group",
+                  xaxis_title="Household income (before tax)")
+fig_defaults(fig, "Self-Rated Health by Income Bracket", height=420).show()
+```
+
+---
+
+::: {.section-header}
+## By gender
+:::
+
+```{python}
+#| echo: false
+by_gender_df = pd.DataFrame(data["by_gender"])
+genders = ["Man", "Woman", "Non-binary / Other"]
+
+fig = go.Figure()
+for srh_cat, clr in zip(order, colors):
+    subset = by_gender_df[by_gender_df["self_rated_health"] == srh_cat]
+    vals = []
+    for g in genders:
+        row = subset[subset["gender"] == g]
+        vals.append(float(row["pct"].values[0]) if len(row) else 0)
+    fig.add_trace(go.Bar(
+        name=srh_cat,
+        x=genders,
+        y=vals,
+        marker_color=clr,
+    ))
+
+fig.update_layout(barmode="stack", yaxis_title="% of gender group", xaxis_title="")
+fig_defaults(fig, "Self-Rated Health by Gender", height=380).show()
+```
+
+```{python}
+#| echo: false
+data_note(
+    "Non-binary / Other and 'Prefer not to say' cells are suppressed when n < 5 per cell "
+    "to protect respondent privacy."
+)
+```

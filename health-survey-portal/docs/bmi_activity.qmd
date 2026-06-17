@@ -1,0 +1,159 @@
+---
+title: "BMI & Physical Activity"
+subtitle: "Body composition and activity levels across demographic groups"
+---
+
+```{python}
+#| echo: false
+import sys
+sys.path.insert(0, "docs/assets")
+from portal_helpers import load, fig_defaults, kpi_row, data_note, COLORS
+import plotly.graph_objects as go
+import pandas as pd
+
+data = load("bmi_activity")
+```
+
+Body Mass Index and physical activity are key modifiable health determinants.
+The CanHealth 2024 survey collected self-reported height and weight (for BMI calculation)
+and weekly physical activity levels.
+
+---
+
+::: {.section-header}
+## BMI distribution
+*Histogram of individual-level BMI values (kg/m²)*
+:::
+
+```{python}
+#| echo: false
+hist = pd.DataFrame(data["bmi_histogram"])
+
+# Reference lines for WHO BMI classifications
+bmi_zones = [
+    (0,   18.5, "rgba(91,147,191,0.08)", "Underweight"),
+    (18.5, 25,  "rgba(46,139,87,0.08)",  "Normal"),
+    (25,   30,  "rgba(230,168,23,0.08)", "Overweight"),
+    (30,   55,  "rgba(192,57,43,0.08)",  "Obese"),
+]
+
+fig = go.Figure()
+
+# Shaded zones
+for lo, hi, clr, label in bmi_zones:
+    fig.add_vrect(x0=lo, x1=hi, fillcolor=clr, line_width=0,
+                  annotation_text=label, annotation_position="top left",
+                  annotation_font_size=11)
+
+# Bars
+fig.add_trace(go.Bar(
+    x=hist["bin_start"] + 1.25,  # centre of 2.5-wide bin
+    y=hist["n"],
+    width=2.3,
+    marker_color=COLORS["primary"],
+    hovertemplate="BMI ~%{x:.1f}: %{y} respondents<extra></extra>",
+))
+
+fig.update_layout(
+    xaxis_title="BMI (kg/m²)",
+    yaxis_title="Number of respondents",
+    bargap=0.05,
+)
+fig_defaults(fig, "BMI Distribution — All Respondents", height=420).show()
+```
+
+---
+
+::: {.section-header}
+## Mean BMI by age group and gender
+:::
+
+```{python}
+#| echo: false
+by_demo = pd.DataFrame(data["bmi_by_demo"])
+age_groups = sorted(by_demo["age_group"].unique().tolist())
+
+fig = go.Figure()
+for gender, clr in [("Man", COLORS["primary"]), ("Woman", COLORS["danger"])]:
+    subset = by_demo[by_demo["gender"] == gender]
+    vals   = []
+    for ag in age_groups:
+        row = subset[subset["age_group"] == ag]
+        vals.append(float(row["mean_bmi"].values[0]) if len(row) else None)
+    fig.add_trace(go.Scatter(
+        x=age_groups, y=vals,
+        mode="lines+markers",
+        name=gender,
+        line=dict(color=clr, width=2.5),
+        marker=dict(size=8),
+        hovertemplate=f"{gender}: %{{y:.1f}}<extra></extra>",
+    ))
+
+fig.update_layout(yaxis_title="Mean BMI", xaxis_title="Age group", yaxis_range=[23, 32])
+fig_defaults(fig, "Mean BMI by Age Group and Gender", height=380).show()
+```
+
+---
+
+::: {.section-header}
+## Physical activity by income bracket
+*Lower income is associated with lower physical activity levels*
+:::
+
+```{python}
+#| echo: false
+pa_df = pd.DataFrame(data["pa_distribution"])
+income_cats = ["Under $30K", "$30K–$59K", "$60K–$99K", "$100K–$149K", "$150K+"]
+pa_levels   = [
+    "Sedentary (< 30 min/week)",
+    "Low (30–149 min/week)",
+    "Moderate (150–299 min/week)",
+    "High (300+ min/week)",
+]
+pa_colors = [COLORS["danger"], COLORS["warning"], COLORS["secondary"], COLORS["success"]]
+
+fig = go.Figure()
+for pa, clr in zip(pa_levels, pa_colors):
+    subset = pa_df[pa_df["physical_activity"] == pa]
+    vals = []
+    for inc in income_cats:
+        row = subset[subset["income_bracket"] == inc]
+        vals.append(float(row["pct"].values[0]) if len(row) else 0)
+    fig.add_trace(go.Bar(
+        name=pa, x=income_cats, y=vals,
+        marker_color=clr,
+    ))
+
+fig.update_layout(
+    barmode="stack",
+    yaxis_title="% of income group",
+    xaxis_title="Household income",
+)
+fig_defaults(fig, "Physical Activity Levels by Income Bracket", height=430).show()
+```
+
+---
+
+::: {.section-header}
+## Statistical test: does physical activity predict BMI?
+*One-way ANOVA (pingouin)*
+:::
+
+```{python}
+#| echo: false
+anova = data["bmi_activity_anova"]
+from IPython.display import display, HTML
+display(HTML(f"""
+<div class="stat-callout">
+  One-way ANOVA: <strong>F = {anova['F']:.3f}</strong>, 
+  p = {anova['p_value']:.4f},
+  η² = {anova['eta_sq']:.4f} 
+  ({'small' if anova['eta_sq'] < 0.06 else 'medium' if anova['eta_sq'] < 0.14 else 'large'} effect size).
+  Physical activity group is a statistically significant predictor of BMI.
+</div>"""))
+```
+
+```{python}
+#| echo: false
+data_note("BMI was calculated from self-reported height and weight, which is subject to social desirability bias in survey settings.")
+```

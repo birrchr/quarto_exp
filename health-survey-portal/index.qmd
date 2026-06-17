@@ -1,0 +1,132 @@
+---
+title: ""
+format:
+  html:
+    toc: false
+---
+
+```{python}
+#| echo: false
+import sys, json
+from pathlib import Path
+sys.path.insert(0, "docs/assets")
+from portal_helpers import load, kpi_row, COLORS
+import plotly.graph_objects as go
+from portal_helpers import fig_defaults
+
+kpis  = load("kpis")
+srh   = load("self_rated_health")
+chron = load("chronic")
+```
+
+::: {.hero-banner}
+# 🩺 CanHealth 2024
+### Fictitious National Health Survey — Interactive Data Portal
+
+Explore population-level health indicators across Canada. All results are
+pre-aggregated from survey microdata — **no individual-level data is published here**.
+
+::: {.badge-pill}
+📅 Survey year: 2024 &nbsp;&nbsp;|&nbsp;&nbsp; 👥 5,000 respondents &nbsp;&nbsp;|&nbsp;&nbsp; 🗺️ 11 provinces / territories
+:::
+:::
+
+---
+
+## At a glance
+
+```{python}
+#| echo: false
+kpi_row([
+    (f"{int(kpis['n_respondents']):,}", "Survey Respondents", "👥", COLORS["primary"]),
+    (f"{kpis['pct_family_doctor']}%", "Have a Family Doctor", "🏥", COLORS["success"]),
+    (f"{kpis['pct_any_chronic']}%", "Any Chronic Condition", "💊", COLORS["warning"]),
+    (f"{kpis['pct_unmet_need']}%", "Unmet Care Need", "⚠️", COLORS["danger"]),
+    (f"{kpis['mean_bmi']}", "Mean BMI", "⚖️", COLORS["secondary"]),
+    (f"{kpis['mean_mh_score']}", "Mean PHQ-4 Score", "🧠", "#8e6a1a"),
+])
+```
+
+---
+
+## Self-rated health overview
+
+```{python}
+#| echo: false
+order  = srh["order"]
+totals = {r["self_rated_health"]: r["pct"] for r in srh["overall"]}
+pcts   = [totals.get(h, 0) for h in order]
+colors = COLORS["health_scale"]
+
+fig = go.Figure(go.Bar(
+    x=order, y=pcts,
+    marker_color=colors,
+    text=[f"{p}%" for p in pcts],
+    textposition="outside",
+    hovertemplate="%{x}: %{y}%<extra></extra>",
+))
+fig.update_layout(yaxis_title="% of respondents", xaxis_title="Self-rated health")
+fig = fig_defaults(fig, title="How do Canadians rate their own health?", height=380)
+fig.show()
+```
+
+::: {.stat-callout}
+**`{python} totals.get("Excellent", 0) + totals.get("Very good", 0)`%** of respondents
+rate their health as *Excellent* or *Very good*.
+:::
+
+---
+
+## Chronic condition burden
+
+```{python}
+#| echo: false
+cond_data = sorted(chron["overall"], key=lambda r: r["prevalence"], reverse=True)
+labels = [r["condition"] for r in cond_data]
+vals   = [r["prevalence"] for r in cond_data]
+
+fig = go.Figure(go.Bar(
+    x=vals, y=labels,
+    orientation="h",
+    marker_color=COLORS["primary"],
+    text=[f"{v}%" for v in vals],
+    textposition="outside",
+    hovertemplate="%{y}: %{x}%<extra></extra>",
+))
+fig.update_layout(
+    xaxis_title="Prevalence (%)",
+    yaxis=dict(autorange="reversed"),
+)
+fig = fig_defaults(fig, title="Prevalence of Chronic Conditions", height=400)
+fig.show()
+```
+
+---
+
+## Explore the full results
+
+:::: {.columns}
+
+::: {.column width="50%"}
+### 📋 Health Status
+- [Self-Rated Health](docs/self_rated_health.qmd) — five-point scale by age, income, gender
+- [Chronic Conditions](docs/chronic.qmd) — prevalence, multimorbidity, income gradients
+- [Mental Health](docs/mental_health.qmd) — PHQ-4 proxy scores, correlations
+:::
+
+::: {.column width="50%"}
+### 🏃 Determinants & Access
+- [BMI & Physical Activity](docs/bmi_activity.qmd) — distributions, ANOVA, activity gradients
+- [Health Behaviours](docs/behaviours.qmd) — smoking, alcohol by age group
+- [Healthcare Access](docs/healthcare_access.qmd) — family doctors, ER use, provincial variation
+:::
+
+::::
+
+---
+
+::: {.data-note}
+**About this portal:** CanHealth 2024 is a **fictitious** survey generated with synthetic data
+for the purpose of demonstrating a Quarto + DuckDB + Plotly data portal.
+No real respondents or health records are represented. See [Methods](docs/methods.qmd) for technical details.
+:::

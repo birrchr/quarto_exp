@@ -1,0 +1,5 @@
+{
+    "terminal.integrated.env.osx": {
+        "QUARTO_PYTHON": "${workspaceFolder}/.venv/bin/python"
+    }
+}

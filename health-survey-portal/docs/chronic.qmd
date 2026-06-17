@@ -1,0 +1,179 @@
+---
+title: "Chronic Conditions"
+subtitle: "Prevalence, multimorbidity, and income gradients"
+---
+
+```{python}
+#| echo: false
+import sys
+sys.path.insert(0, "docs/assets")
+from portal_helpers import load, fig_defaults, kpi_row, data_note, COLORS
+import plotly.graph_objects as go
+import plotly.express as px
+import pandas as pd
+
+data = load("chronic")
+```
+
+Chronic conditions are a major driver of healthcare utilisation and quality of life.
+This section examines the prevalence of eight conditions measured in the CanHealth 2024 survey,
+their concentration by age group, and the gradient with household income.
+
+---
+
+::: {.section-header}
+## Overall prevalence
+:::
+
+```{python}
+#| echo: false
+overall = sorted(data["overall"], key=lambda r: r["prevalence"], reverse=True)
+labels  = [r["condition"] for r in overall]
+vals    = [r["prevalence"] for r in overall]
+bar_colors = [
+    COLORS["danger"] if v > 20 else
+    COLORS["warning"] if v > 10 else
+    COLORS["primary"]
+    for v in vals
+]
+
+fig = go.Figure(go.Bar(
+    x=vals, y=labels,
+    orientation="h",
+    marker_color=bar_colors,
+    text=[f"{v}%" for v in vals],
+    textposition="outside",
+    hovertemplate="%{y}: %{x}%<extra></extra>",
+))
+fig.update_layout(
+    xaxis_title="Prevalence (% of respondents)",
+    yaxis=dict(autorange="reversed"),
+)
+fig_defaults(fig, "Chronic Condition Prevalence — All Ages", height=420).show()
+```
+
+---
+
+::: {.section-header}
+## Prevalence by age group
+*Select a condition in the dropdown*
+:::
+
+```{python}
+#| echo: false
+by_age_df = pd.DataFrame(data["by_age"])
+conditions = by_age_df["condition"].unique().tolist()
+age_groups = sorted(by_age_df["age_group"].unique().tolist())
+
+# Build one trace per condition, only first is visible
+fig = go.Figure()
+for i, cond in enumerate(conditions):
+    subset = by_age_df[by_age_df["condition"] == cond]
+    vals = []
+    for ag in age_groups:
+        row = subset[subset["age_group"] == ag]
+        vals.append(float(row["prevalence"].values[0]) if len(row) else 0)
+    fig.add_trace(go.Bar(
+        name=cond,
+        x=age_groups,
+        y=vals,
+        marker_color=COLORS["primary"],
+        visible=(i == 0),
+        hovertemplate=f"{cond}: %{{y:.1f}}%<extra></extra>",
+    ))
+
+# Dropdown menu
+buttons = [
+    dict(
+        label=cond,
+        method="update",
+        args=[
+            {"visible": [j == i for j in range(len(conditions))]},
+            {"title": f"{cond} — Prevalence by Age Group"},
+        ],
+    )
+    for i, cond in enumerate(conditions)
+]
+
+fig.update_layout(
+    updatemenus=[dict(
+        type="dropdown",
+        direction="down",
+        x=0.01, xanchor="left", y=1.15,
+        showactive=True,
+        buttons=buttons,
+    )],
+    yaxis_title="Prevalence (%)",
+    xaxis_title="Age group",
+)
+fig_defaults(fig, f"{conditions[0]} — Prevalence by Age Group", height=430).show()
+```
+
+---
+
+::: {.section-header}
+## Multimorbidity
+*The number of concurrent chronic conditions per respondent*
+:::
+
+```{python}
+#| echo: false
+multi = pd.DataFrame(data["multimorbidity"])
+fig = go.Figure(go.Bar(
+    x=multi["chronic_count"].astype(str) + " condition(s)",
+    y=multi["pct"],
+    marker_color=[
+        COLORS["success"] if n == 0 else
+        COLORS["primary"] if n == 1 else
+        COLORS["warning"] if n <= 3 else
+        COLORS["danger"]
+        for n in multi["chronic_count"]
+    ],
+    text=[f"{p}%" for p in multi["pct"]],
+    textposition="outside",
+    hovertemplate="Count: %{x}, %{y:.1f}% of respondents<extra></extra>",
+))
+fig.update_layout(yaxis_title="% of respondents", xaxis_title="Number of chronic conditions")
+fig_defaults(fig, "Distribution of Multimorbidity", height=380).show()
+```
+
+::: {.stat-callout}
+**`{python} next(r['pct'] for r in data['multimorbidity'] if r['chronic_count'] == 0)`%**
+of respondents report *no* chronic conditions. Among those with at least one condition,
+concurrent diagnoses (multimorbidity) are common.
+:::
+
+---
+
+::: {.section-header}
+## Income gradient in chronic disease burden
+*Statistical test: χ² independence test (pingouin)*
+:::
+
+```{python}
+#| echo: false
+chi2 = data["chi2_income"]
+print(f"χ²({chi2['chi2']:.3f}), p = {chi2['p_value']:.4f}, Cramér's V = {chi2['cramers_v']:.3f}")
+```
+
+```{python}
+#| echo: false
+from IPython.display import display, HTML
+cramer = data["chi2_income"]["cramers_v"]
+p_val  = data["chi2_income"]["p_value"]
+sig    = "statistically significant" if p_val < 0.05 else "not statistically significant"
+display(HTML(f"""
+<div class="stat-callout">
+  The association between income bracket and having at least one chronic condition
+  is <strong>{sig}</strong> (p = {p_val:.4f}).
+  Cramér's V = <strong>{cramer:.3f}</strong> indicates a
+  {'small-to-moderate' if cramer < 0.3 else 'moderate-to-strong'} effect size.
+</div>"""))
+```
+
+```{python}
+#| echo: false
+data_note(
+    "These results are generated from synthetic data and do not reflect real population health statistics."
+)
+```

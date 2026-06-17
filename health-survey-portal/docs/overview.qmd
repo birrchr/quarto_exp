@@ -1,0 +1,122 @@
+---
+title: "Survey Overview"
+subtitle: "About the CanHealth 2024 Fictitious National Health Survey"
+---
+
+```{python}
+#| echo: false
+import sys, json
+from pathlib import Path
+sys.path.insert(0, "docs/assets")
+from portal_helpers import load, fig_defaults, kpi_row, data_note, COLORS
+import plotly.graph_objects as go
+import pandas as pd
+
+kpis     = load("kpis")
+manifest = load("manifest")
+```
+
+## What is CanHealth 2024?
+
+CanHealth 2024 is a **fictitious** national health survey created to demonstrate
+the Quarto + DuckDB + Plotly data portal framework. It simulates the structure
+of real population health surveys such as the Canadian Community Health Survey (CCHS).
+
+::: {.stat-callout}
+**Portal last generated:** `{python} manifest['generated_at'][:10]`  
+**Respondents:** `{python} f"{manifest['n_respondents']:,}"`  
+**Aggregated output files:** `{python} len(manifest['files'])`
+:::
+
+---
+
+## Survey design
+
+| Feature | Detail |
+|---|---|
+| **Survey name** | CanHealth 2024 (Fictitious) |
+| **Reference population** | Canadian residents aged 18 and older |
+| **Sample size** | 5,000 synthetic respondents |
+| **Sampling design** | Simulated stratified by province and age |
+| **Survey weight** | Post-stratification weight (mean ≈ 1.0, log-normal noise) |
+| **Data collection mode** | Simulated — see `scripts/generate_data.py` |
+| **Microdata format** | Apache Parquet (columnar, compressed) |
+
+---
+
+## Sample distribution by province
+
+```{python}
+#| echo: false
+access = load("healthcare_access")
+prov_df = pd.DataFrame(access["by_province"]).sort_values("n", ascending=True)
+
+fig = go.Figure(go.Bar(
+    x=prov_df["n"],
+    y=prov_df["province"],
+    orientation="h",
+    marker_color=COLORS["primary"],
+    text=prov_df["n"],
+    textposition="outside",
+    hovertemplate="%{y}: %{x} respondents<extra></extra>",
+))
+fig.update_layout(xaxis_title="Number of respondents", yaxis_title="")
+fig_defaults(fig, "Sample Size by Province / Territory", height=430).show()
+```
+
+---
+
+## Variables collected
+
+```{python}
+#| echo: false
+codebook_path = Path("data/raw/codebook.json")
+if codebook_path.exists():
+    codebook = json.loads(codebook_path.read_text())
+    rows = [
+        f"| `{var}` | {desc} |"
+        for var, desc in codebook["variables"].items()
+    ]
+    table_md = "| Variable | Description |\n|---|---|\n" + "\n".join(rows)
+    from IPython.display import Markdown, display
+    display(Markdown(table_md))
+else:
+    print("Codebook not found — run scripts/generate_data.py first.")
+```
+
+---
+
+## How the portal works
+
+This portal is built on three stages that are **completely separated from each other**:
+
+```
+┌─────────────────────────┐
+│  Stage 1: Generate data │  scripts/generate_data.py
+│  (run once locally)     │  → data/raw/microdata.parquet
+└────────────┬────────────┘
+             │
+             ▼
+┌─────────────────────────┐
+│  Stage 2: Tabulate      │  scripts/tabulate.py
+│  (run locally before    │  → data/aggregated/*.json
+│   every publish)        │
+└────────────┬────────────┘
+             │
+             ▼
+┌─────────────────────────┐
+│  Stage 3: Quarto render │  quarto render  OR
+│  (pure static HTML;     │  quarto publish gh-pages
+│   reads only JSON)      │
+└─────────────────────────┘
+```
+
+**Key privacy property:** Only the aggregated JSON files travel to GitHub.
+The raw `data/raw/` folder is listed in `.gitignore` and is never committed.
+
+---
+
+::: {.data-note}
+All data in this portal are **entirely synthetic**. No real Canadians or health records
+are represented. The survey instrument and findings are illustrative only.
+:::

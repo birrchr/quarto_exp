@@ -1,0 +1,158 @@
+---
+title: "Healthcare Access"
+subtitle: "Family doctors, unmet needs, and emergency department utilisation"
+---
+
+```{python}
+#| echo: false
+import sys
+sys.path.insert(0, "docs/assets")
+from portal_helpers import load, fig_defaults, kpi_row, data_note, COLORS
+import plotly.graph_objects as go
+import pandas as pd
+
+data = load("healthcare_access")
+```
+
+Access to primary care is a fundamental determinant of health system performance.
+This section examines provincial variation in family physician access, unmet care needs,
+and emergency room utilisation.
+
+---
+
+::: {.section-header}
+## Provincial comparison
+*Family doctor coverage and unmet care needs by province*
+:::
+
+```{python}
+
+prov_df = pd.DataFrame(data["by_province"]).sort_values("pct_family_doctor", ascending=True)
+
+fig = go.Figure()
+fig.add_trace(go.Bar(
+    name="Has Family Doctor",
+    x=prov_df["pct_family_doctor"],
+    y=prov_df["province"],
+    orientation="h",
+    marker_color=COLORS["primary"],
+    opacity=0.85,  # <-- Added here
+    hovertemplate="%{y}: %{x:.1f}%<extra>Family Doctor</extra>",
+))
+fig.add_trace(go.Bar(
+    name="Unmet Care Need",
+    x=prov_df["pct_unmet_need"],
+    y=prov_df["province"],
+    orientation="h",
+    marker_color=COLORS["danger"],
+    opacity=0.85,  # <-- Added here
+    hovertemplate="%{y}: %{x:.1f}%<extra>Unmet Need</extra>",
+))
+fig.update_layout(
+    barmode="overlay",
+    xaxis_title="% of respondents",
+    yaxis=dict(tickfont=dict(size=12)),
+    # opacity removed from here
+)
+fig_defaults(fig, "Family Doctor Access & Unmet Need by Province", height=480).show()
+
+
+# #| echo: false
+# prov_df = pd.DataFrame(data["by_province"]).sort_values("pct_family_doctor", ascending=True)
+
+# fig = go.Figure()
+# fig.add_trace(go.Bar(
+#     name="Has Family Doctor",
+#     x=prov_df["pct_family_doctor"],
+#     y=prov_df["province"],
+#     orientation="h",
+#     marker_color=COLORS["primary"],
+#     hovertemplate="%{y}: %{x:.1f}%<extra>Family Doctor</extra>",
+# ))
+# fig.add_trace(go.Bar(
+#     name="Unmet Care Need",
+#     x=prov_df["pct_unmet_need"],
+#     y=prov_df["province"],
+#     orientation="h",
+#     marker_color=COLORS["danger"],
+#     hovertemplate="%{y}: %{x:.1f}%<extra>Unmet Need</extra>",
+# ))
+# fig.update_layout(
+#     barmode="overlay",
+#     xaxis_title="% of respondents",
+#     yaxis=dict(tickfont=dict(size=12)),
+#     opacity=0.85,
+# )
+# fig_defaults(fig, "Family Doctor Access & Unmet Need by Province", height=480).show()
+```
+
+---
+
+::: {.section-header}
+## Emergency room visits — distribution
+*Visits in the past 12 months*
+:::
+
+```{python}
+#| echo: false
+er_df = pd.DataFrame(data["er_distribution"])
+
+fig = go.Figure(go.Bar(
+    x=[f"{v} visit{'s' if v != 1 else ''}" for v in er_df["visits"]],
+    y=er_df["pct"],
+    marker_color=[
+        COLORS["success"] if v == 0 else
+        COLORS["warning"] if v <= 2 else
+        COLORS["danger"]
+        for v in er_df["visits"]
+    ],
+    text=[f"{p}%" for p in er_df["pct"]],
+    textposition="outside",
+    hovertemplate="%{x}: %{y:.1f}%<extra></extra>",
+))
+fig.update_layout(yaxis_title="% of respondents", xaxis_title="ER visits (past 12 months)")
+fig_defaults(fig, "Emergency Room Visit Distribution", height=380).show()
+```
+
+---
+
+::: {.section-header}
+## Unmet care need by income
+*Lower-income respondents disproportionately report unmet needs*
+:::
+
+```{python}
+#| echo: false
+unmet_df = pd.DataFrame(data["unmet_by_income"])
+income_order = ["Under $30K", "$30K–$59K", "$60K–$99K", "$100K–$149K", "$150K+"]
+unmet_df["income_bracket"] = pd.Categorical(
+    unmet_df["income_bracket"], categories=income_order, ordered=True
+)
+unmet_df = unmet_df.sort_values("income_bracket")
+
+fig = go.Figure(go.Scatter(
+    x=unmet_df["income_bracket"],
+    y=unmet_df["pct_unmet_need"],
+    mode="lines+markers",
+    line=dict(color=COLORS["danger"], width=3),
+    marker=dict(size=10, color=COLORS["danger"]),
+    fill="tozeroy",
+    fillcolor="rgba(192,57,43,0.1)",
+    hovertemplate="%{x}: %{y:.1f}% unmet need<extra></extra>",
+))
+fig.update_layout(
+    yaxis_title="% with unmet care need",
+    xaxis_title="Household income",
+)
+fig_defaults(fig, "Unmet Care Need by Income Bracket", height=360).show()
+```
+
+::: {.stat-callout}
+The income gradient in unmet care is stark: respondents earning **under $30K** are
+roughly **3–4× more likely** to report an unmet healthcare need than those earning **$150K+**.
+:::
+
+```{python}
+#| echo: false
+data_note("Provincial sample sizes are small for territories (n < 50). Estimates should be interpreted with caution.")
+```

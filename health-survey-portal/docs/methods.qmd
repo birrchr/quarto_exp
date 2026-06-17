@@ -1,0 +1,157 @@
+---
+title: "Methods & Technical Notes"
+subtitle: "How this portal was built and how to adapt it"
+---
+
+## Technology stack
+
+| Layer | Tool | Why we chose it |
+|---|---|---|
+| **Package manager** | [uv](https://github.com/astral-sh/uv) | Extremely fast; single `uv sync` installs everything |
+| **Data generation** | NumPy + Faker | Reproducible synthetic microdata with realistic correlations |
+| **Aggregation engine** | [DuckDB](https://duckdb.org) | SQL on Parquet without a server; runs in-process |
+| **Statistics** | [pingouin](https://pingouin-stats.org) | R-like API for ANOVA, chi-square, correlations, CIs |
+| **Visualisation** | [Plotly](https://plotly.com/python/) | Interactive charts that work in static HTML with no server |
+| **Site framework** | [Quarto](https://quarto.org) | Renders Jupyter/Python notebooks to polished HTML |
+| **Hosting** | GitHub Pages | Free static hosting; CI/CD via GitHub Actions |
+
+---
+
+## Data pipeline in detail
+
+### Stage 1 — Microdata generation (`generate_data.py`)
+
+The script uses `numpy.random.default_rng(seed=42)` for reproducibility.
+Demographic variables are sampled from weighted categorical distributions
+that approximate real Canadian population proportions (Statistics Canada, 2021 Census).
+
+Health variables are generated with realistic correlations:
+
+- Chronic condition probabilities increase with age (logistic-style sigmoid)
+- BMI is correlated with physical activity level and income
+- Mental health scores correlate with chronic conditions and income
+- Self-rated health is derived from a continuous latent score
+
+Output: `data/raw/microdata.parquet` (~2 MB, 5,000 rows × 28 columns)
+
+### Stage 2 — Tabulation (`tabulate.py`)
+
+DuckDB reads the Parquet file via a `CREATE VIEW` — the data is never fully
+loaded into RAM. All aggregations are expressed as SQL and pushed into
+DuckDB's vectorised execution engine.
+
+**pingouin** provides publication-quality statistical tests:
+
+```python
+# Chi-squared test with Cramér's V effect size
+pg.chi2_independence(df, x="income_bracket", y="any_chronic")
+
+# One-way ANOVA with partial eta-squared
+pg.anova(data=df, dv="bmi", between="physical_activity")
+
+# Pearson correlation matrix with 95% bootstrap CIs
+pg.pairwise_corr(df, method="pearson")
+```
+
+Outputs: 8 JSON files in `data/aggregated/`, each < 50 KB.
+
+### Stage 3 — Quarto rendering
+
+Each `.qmd` page:
+
+1. Calls `load("filename")` from `portal_helpers.py` to read its JSON file
+2. Builds Plotly figures from the aggregated data
+3. Calls `fig.show()` — Quarto captures the output and embeds it as interactive HTML
+
+Because every page only reads pre-aggregated JSON (no Parquet, no DuckDB at render time),
+the Quarto build is fast and produces fully static HTML.
+
+---
+
+## Quarto configuration highlights (`_quarto.yml`)
+
+```yaml
+execute:
+  freeze: auto    # Only re-render pages whose source changed
+  cache: true     # Cache Python outputs between renders
+  echo: false     # Hide code by default (toggle with code-fold button)
+
+format:
+  html:
+    theme:
+      light: [flatly, docs/assets/custom.scss]
+      dark:  [darkly, docs/assets/custom.scss]
+    code-fold: true    # Readers can expand code blocks
+    code-tools: true   # Source / download buttons
+```
+
+`freeze: auto` is important: it means Quarto only re-executes Python in a page
+if that page's `.qmd` source has changed, making incremental rebuilds very fast.
+
+---
+
+## GitHub Pages deployment
+
+The GitHub Actions workflow (`.github/workflows/publish.yml`) runs on every push to `main`:
+
+1. Checks out the repo
+2. Installs uv and Python
+3. Runs `uv sync` to install dependencies
+4. Runs the tabulation pipeline (reads aggregated JSON already committed to the repo)
+5. Renders the Quarto site
+6. Pushes `_site/` to the `gh-pages` branch
+
+::: {.stat-callout}
+**Important:** The raw microdata (`data/raw/`) is listed in `.gitignore` and is
+never pushed to GitHub. Only the pre-aggregated `data/aggregated/*.json` files
+are committed and used during CI rendering.
+:::
+
+---
+
+## Adapting this portal for your own survey
+
+1. **Edit `scripts/generate_data.py`** (or replace it entirely with your own data pipeline)
+   to produce a Parquet file at `data/raw/microdata.parquet`.
+
+2. **Edit `scripts/tabulate.py`** — add or remove SQL aggregations. Each `dump_json()` call
+   produces one JSON file that a Quarto page can consume.
+
+3. **Add a new `.qmd` page** under `docs/`:
+   ```python
+   data = load("your_new_file")   # reads data/aggregated/your_new_file.json
+   ```
+   Then add it to the `navbar` section of `_quarto.yml`.
+
+4. **Re-run the pipeline:**
+   ```bash
+   uv run python scripts/tabulate.py
+   quarto render
+   ```
+
+5. **Commit and push** — GitHub Actions will publish the updated site automatically.
+
+---
+
+## Cell suppression and privacy
+
+The tabulation pipeline applies a simple minimum-cell-count rule:
+
+```sql
+HAVING COUNT(*) >= 5
+```
+
+Any demographic cross-tabulation cell with fewer than 5 respondents is suppressed.
+For a production deployment with real microdata, you would strengthen this with:
+
+- Higher suppression threshold (typically n < 10 or n < 20)
+- Complementary suppression (suppress totals that allow back-calculation)
+- Rounding to nearest 5 or 10
+- Noise infusion or differential privacy for continuous statistics
+
+---
+
+## Reproducibility
+
+All randomness in `generate_data.py` is seeded (`seed=42`). Running the full pipeline
+twice on the same machine will produce identical outputs.
