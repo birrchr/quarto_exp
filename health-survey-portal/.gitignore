@@ -1,2 +1,16 @@
 /.quarto/
+/_site/
 **/*.quarto_ipynb
+
+# Build-time data: fetched and aggregated in CI, never committed.
+# data/aggregated/ is kept because the Python pages read it.
+data/*
+!data/aggregated/
+docs/_dashboard_app.qmd
+app/processed_summary.csv
+
+# Local R credentials / session files
+.Renviron
+.env
+.Rhistory
+.RData

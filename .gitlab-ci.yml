@@ -1,0 +1,81 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Build and publish the CanHealth portal to GitLab Pages.
+#
+# Required CI/CD variables (Settings → CI/CD → Variables, Masked + Protected):
+#   DATA_API_URL + DATA_API_TOKEN   or   DB_CONN_STR (+ DATA_TABLE)
+# Optional: MIN_CELL_SIZE (default 10), ROUND_BASE (default 5)
+#
+# Protected variables only reach protected branches, so:
+#   build-site     default branch — real data, published to Pages
+#   build-preview  other branches / MRs — random dev sample, never published
+#
+# Only the rendered site (public/) is kept as an artifact. The aggregate CSV
+# and generated include live in the job workspace and are discarded with it.
+# ─────────────────────────────────────────────────────────────────────────────
+
+stages:
+  - build
+  - deploy
+
+variables:
+  PORTAL_DIR: health-survey-portal
+  # rocker/verse ships R, the tidyverse and the Quarto CLI.
+  R_IMAGE: rocker/verse:4.4.1
+
+.build:
+  stage: build
+  image: $R_IMAGE
+  before_script:
+    - cd "$PORTAL_DIR"
+    # unixODBC headers for the odbc package; add your DB's ODBC driver here too.
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends unixodbc-dev
+    # Imports plus testthat only; arrow (local Parquet) isn't needed in CI.
+    - Rscript -e 'remotes::install_deps(upgrade = "never"); remotes::install_cran("testthat", upgrade = "never")'
+    # Prefer committing _extensions/ (run `quarto add quarto-ext/shinylive` locally);
+    # install it here only if it is missing.
+    - test -d _extensions/quarto-ext/shinylive || quarto add --no-prompt quarto-ext/shinylive
+    - Rscript tests/test_disclosure.R
+  script:
+    - Rscript scripts/fetch_and_aggregate.R
+    - Rscript scripts/build_dashboard_app.R
+    # Python pages are rendered from the committed _freeze/ cache (freeze: auto),
+    # so no Python environment is needed here.
+    - quarto render
+    - mv _site "$CI_PROJECT_DIR/public"
+
+build-site:
+  extends: .build
+  artifacts:
+    paths:
+      - public
+    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+build-preview:
+  extends: .build
+  script:
+    # Never touch the real source here, even on another protected branch
+    # (project variables would override job-level YAML, so unset explicitly).
+    - unset DATA_API_URL DATA_API_TOKEN DB_CONN_STR DATA_TABLE
+    - export DATA_LOCAL_FILE=data/dev_sample.csv
+    - Rscript scripts/make_dev_sample.R "$DATA_LOCAL_FILE"
+    - !reference [.build, script]
+  artifacts:
+    paths:
+      - public
+    expire_in: 1 day
+  rules:
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+
+pages:
+  stage: deploy
+  image: alpine:3.20
+  needs: [build-site]
+  script:
+    - echo "Publishing public/ to GitLab Pages"
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
