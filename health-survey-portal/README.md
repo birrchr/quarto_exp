@@ -362,11 +362,12 @@ Replace `YOUR_USERNAME` with your actual GitHub username.
 
 GitHub Actions reads `.github/workflows/publish.yml` and runs a workflow:
 
-1. ✅ Installs uv and Python
-2. ✅ Runs `uv sync`
-3. ✅ Checks that `data/aggregated/*.json` files exist (they were committed in step 6.3)
-4. ✅ Runs `quarto render`
-5. ✅ Publishes the `_site/` folder to the `gh-pages` branch
+1. ✅ Installs uv and Python, runs `uv sync`
+2. ✅ Generates the synthetic microdata (`scripts/generate_data.py`, fixed seed)
+3. ✅ Installs R and the packages in `DESCRIPTION`, then tests the disclosure rules
+4. ✅ Aggregates the dashboard data and bundles it into the Shinylive app
+5. ✅ Runs `quarto render`
+6. ✅ Publishes `_site/` to GitHub Pages (pushes to `main` only; pull requests just build)
 
 You can watch this happen at:  
 `https://github.com/YOUR_USERNAME/health-survey-portal/actions`
@@ -377,9 +378,9 @@ You can watch this happen at:
 
 1. Go to your repository on GitHub
 2. Click **Settings** → **Pages** (left sidebar)
-3. Under **Source**, select **Deploy from a branch**
-4. Set **Branch** to `gh-pages` and folder to `/ (root)`
-5. Click **Save**
+3. Under **Build and deployment → Source**, select **GitHub Actions**
+
+That's all: the workflow deploys the site itself, so there is no `gh-pages` branch.
 
 After about 60 seconds, your site will be live at:  
 `https://YOUR_USERNAME.github.io/health-survey-portal`
@@ -400,7 +401,7 @@ $ git commit -m "Update aggregated results"
 $ git push
 ```
 
-GitHub Actions will automatically rebuild and republish the site within ~2 minutes.
+GitHub Actions will automatically rebuild and republish the site within a few minutes.
 
 ---
 
@@ -663,9 +664,11 @@ app/app.R ──────► scripts/build_dashboard_app.R ◄─────
               docs/_dashboard_app.qmd (gitignored) ──► included by docs/dashboard.qmd
 ```
 
-- **Credentials** come only from environment variables: `DATA_API_URL` + `DATA_API_TOKEN`
-  (HTTPS API) or `DB_CONN_STR` (+ `DATA_TABLE`) for an ODBC database, where the
-  aggregation runs in-database. Set them as masked, protected CI/CD variables in GitLab.
+- **Data source** is chosen by environment variable. This repo uses `DATA_LOCAL_FILE`
+  pointing at the synthetic `data/raw/microdata.parquet`. For a real secure source, set
+  `DATA_API_URL` + `DATA_API_TOKEN` (HTTPS API) or `DB_CONN_STR` (+ `DATA_TABLE`) for an
+  ODBC database, where the aggregation runs in-database. Store those as GitHub Actions
+  secrets, never in the repo.
 - **Disclosure control:** only allowlisted columns are read. Output is one-way tables (by
   province, age group, income, education), each also split by gender. Estimates are
   unweighted, matching the Results pages. Cells with `n < MIN_CELL_SIZE` (default 10) are
@@ -673,11 +676,9 @@ app/app.R ──────► scripts/build_dashboard_app.R ◄─────
   suppressed and together they cover `MIN_CELL_SIZE`, so no hidden value can be recovered
   as "All" minus the others. Counts are rounded to `ROUND_BASE` (default 5).
   `tests/test_disclosure.R` covers these rules (`make test-r`).
-- **CI:** `.gitlab-ci.yml` at the repo root installs the R deps, runs the tests and both
-  scripts, and renders. On the default branch (`build-site`) it uses the real source and
-  publishes `public/` to GitLab Pages. Other branches (`build-preview`) build from a random
-  sample made by `scripts/make_dev_sample.R` and are never published, because protected
-  credentials are not available there.
+- **CI:** `.github/workflows/publish.yml` at the repo root generates the demo microdata,
+  runs the tests and both scripts, and renders. Pull requests build only; pushes to `main`
+  publish to GitHub Pages.
 
 One-time setup (requires R ≥ 4.1 and Quarto ≥ 1.4):
 
@@ -761,7 +762,7 @@ $ git push
 ### The GitHub Pages site shows a 404 error
 
 1. Wait 2–3 minutes after the Actions workflow finishes
-2. Check **Settings → Pages** and confirm the source is `gh-pages` branch
+2. Check **Settings → Pages** and confirm the source is **GitHub Actions**
 3. Make sure the repository is **Public**
 
 ---

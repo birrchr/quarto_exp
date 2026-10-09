@@ -4,7 +4,7 @@
 # Usage: make <target>
 # ─────────────────────────────────────────────────────────────────────────────
 
-.PHONY: help install generate tabulate dashboard-deps dashboard-data test-r build preview publish clean clean-all all
+.PHONY: help install generate tabulate dashboard-deps dashboard-data test-r build preview clean clean-all all
 
 # Default target: show help
 help:
@@ -19,7 +19,6 @@ help:
 	@echo "  make test-r     Test the dashboard's disclosure control (R)"
 	@echo "  make build      Render the Quarto website     (_site/)"
 	@echo "  make preview    Live-preview the site in your browser"
-	@echo "  make publish    Publish to GitHub Pages (requires quarto CLI)"
 	@echo "  make all        install → generate → tabulate → build"
 	@echo "  make clean      Remove generated files"
 	@echo ""
@@ -63,9 +62,6 @@ build:
 preview:
 	quarto preview
 
-# Publish directly to GitHub Pages (shortcut for quarto publish)
-publish:
-	quarto publish gh-pages
 
 # Run the full pipeline from scratch
 all: install generate tabulate build
