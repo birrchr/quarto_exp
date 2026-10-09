@@ -30,6 +30,8 @@ website:
             text: "Health Behaviours"
           - href: docs/healthcare_access.qmd
             text: "Healthcare Access"
+      - href: docs/dashboard.qmd
+        text: Interactive Dashboard
       - href: docs/methods.qmd
         text: Methods
     right:

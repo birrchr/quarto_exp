@@ -1,0 +1,24 @@
+---
+title: "Interactive Data Summary"
+subtitle: "Explore chronic conditions, access to care, BMI and mental health by group"
+format: html
+engine: markdown
+filters:
+  - shinylive
+---
+
+This dashboard is an R Shiny app compiled to WebAssembly with
+[Shinylive](https://shiny.posit.co/py/docs/shinylive.html). It runs entirely in your
+browser — there is no server behind it. The app may take a few seconds to load the
+first time.
+
+::: {.callout-note}
+## What data does this page contain?
+Only a pre-aggregated, disclosure-controlled summary table produced at build time.
+Cells with fewer than 10 respondents are suppressed, along with enough neighbouring
+gender cells that a hidden value can't be worked out by subtraction. Published counts
+are rounded to the nearest 5. Estimates are unweighted, matching the Results pages.
+No individual-level records are included. See [Methods](methods.qmd).
+:::
+
+{{< include _dashboard_app.qmd >}}

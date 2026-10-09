@@ -1,0 +1,88 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Build the CanHealth portal and publish it to GitHub Pages.
+#
+# The dashboard's data is the repo's own synthetic demo data: it is generated
+# here by scripts/generate_data.py (fixed seed), aggregated with disclosure
+# control by scripts/fetch_and_aggregate.R, and only the aggregate table ships
+# in the site. Raw microdata never leaves the runner.
+#
+# Pull requests build and test but don't publish. Pushes to main publish.
+# One-time setup: Settings → Pages → Source: "GitHub Actions".
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: Build and publish portal
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: health-survey-portal
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Install Python dependencies
+        run: uv sync
+
+      - name: Generate demo microdata
+        run: uv run python scripts/generate_data.py
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          working-directory: health-survey-portal
+          dependencies: '"hard"'
+          extra-packages: any::arrow, any::testthat
+
+      - uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Test disclosure control
+        run: Rscript tests/test_disclosure.R
+
+      - name: Aggregate and bundle dashboard data
+        env:
+          DATA_LOCAL_FILE: data/raw/microdata.parquet
+        run: |
+          Rscript scripts/fetch_and_aggregate.R
+          Rscript scripts/build_dashboard_app.R
+
+      # Python pages render from the committed _freeze/ cache (freeze: auto).
+      - name: Render site
+        run: quarto render
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: health-survey-portal/_site
+
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
