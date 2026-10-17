@@ -5,7 +5,7 @@ Shared utilities imported by every Quarto QMD page.
 
 Provides:
   - load()        : load a pre-aggregated JSON file
-  - COLORS        : consistent Plotly colour palette
+  - BLUES, COLORS, blue_ramp(): the monochrome blue palette
   - fig_defaults(): apply standard layout to any Plotly figure
   - make_bar()    : quick horizontal bar chart
   - make_grouped_bar(): grouped bar with consistent style
@@ -47,21 +47,38 @@ def load(name: str) -> dict:
 # Visual design system
 # ---------------------------------------------------------------------------
 
-# Plotly colour sequences aligned with the SCSS palette
+# Monochrome blue. Every chart draws from this one ramp so colour never
+# implies "good" or "bad" (a red "Excellent" bar reads as a warning). Order
+# is carried by lightness: for an ordered scale the darkest step is the
+# "most" end (Excellent, daily, high activity); counts and prevalences use a
+# single blue because bar length already shows the size.
+BLUES = {
+    100: "#cde2fb", 150: "#b7d3f6", 200: "#9ec5f4", 250: "#86b6ef",
+    300: "#6da7ec", 350: "#5598e7", 400: "#3987e5", 450: "#2a78d6",
+    500: "#256abf", 550: "#1c5cab", 600: "#184f95", 650: "#104281",
+    700: "#0d366b",
+}
+
+# Validated ordinal ramps (one hue, monotone lightness, light end >= 2:1 on
+# white), darkest first.
+_RAMPS = {
+    2: [BLUES[600], BLUES[300]],
+    3: [BLUES[650], BLUES[450], BLUES[250]],
+    4: [BLUES[650], BLUES[500], BLUES[350], BLUES[250]],
+    5: [BLUES[650], BLUES[550], BLUES[450], BLUES[350], BLUES[250]],
+}
+
+
+def blue_ramp(n: int) -> list[str]:
+    """n blues from darkest to lightest (n = 1-5)."""
+    return [BLUES[550]] if n == 1 else list(_RAMPS[n])
+
+
 COLORS = {
-    "primary":   "#1a7f8e",
-    "secondary": "#5a8fa3",
-    "success":   "#2e8b57",
-    "warning":   "#e6a817",
-    "danger":    "#c0392b",
-    "neutral":   "#7a8c9a",
-    # Categorical palette for multi-series charts
-    "cat": [
-        "#1a7f8e", "#e6a817", "#2e8b57", "#c0392b",
-        "#5a8fa3", "#8e6a1a", "#3b2e8b", "#8b2e2e",
-    ],
-    # Sequential palette for health outcomes
-    "health_scale": ["#c0392b", "#e6a817", "#f0d060", "#7ec88a", "#2e8b57"],
+    "primary":   BLUES[550],
+    "secondary": BLUES[300],
+    "muted":     "#898781",   # reference lines, thresholds, annotations
+    "grid":      "#e1e0d9",
 }
 
 _BASE_LAYOUT = dict(
@@ -96,8 +113,22 @@ _BASE_LAYOUT = dict(
 )
 
 
+def _escape_dollars(values):
+    """Plotly reads text between two "$" signs as LaTeX, so a category such as
+    "$30K–$59K" renders as an italic formula. The HTML entity displays as "$"."""
+    if values is None or not any(isinstance(v, str) and "$" in v for v in values):
+        return values
+    return [v.replace("$", "&#36;") if isinstance(v, str) else v for v in values]
+
+
 def fig_defaults(fig: go.Figure, title: str = "", height: int = 420) -> go.Figure:
     """Apply standard portal layout to a Plotly figure."""
+    for trace in fig.data:
+        for axis in ("x", "y"):
+            if hasattr(trace, axis):
+                escaped = _escape_dollars(getattr(trace, axis))
+                if escaped is not getattr(trace, axis):
+                    setattr(trace, axis, escaped)
     fig.update_layout(
         **_BASE_LAYOUT,
         title=dict(
@@ -150,13 +181,13 @@ def make_grouped_bar(
         {series_name: [values...], ...}  One key per group.
     """
     fig = go.Figure()
-    palette = COLORS["cat"]
-    for i, (name, vals) in enumerate(series.items()):
+    palette = blue_ramp(len(series))
+    for clr, (name, vals) in zip(palette, series.items()):
         fig.add_trace(go.Bar(
             name=name,
             x=categories,
             y=vals,
-            marker_color=palette[i % len(palette)],
+            marker_color=clr,
         ))
     fig.update_layout(
         barmode=barmode,
@@ -168,7 +199,7 @@ def make_grouped_bar(
 
 def make_heatmap(
     z_matrix, x_labels, y_labels,
-    title="", colorscale="teal",
+    title="",
     height=400,
 ) -> go.Figure:
     """Annotated heatmap."""
@@ -176,7 +207,7 @@ def make_heatmap(
         z=z_matrix,
         x=x_labels,
         y=y_labels,
-        colorscale="Teal",
+        colorscale=[[0, BLUES[100]], [1, BLUES[650]]],
         text=[[f"{v:.1f}" for v in row] for row in z_matrix],
         texttemplate="%{text}",
         showscale=True,

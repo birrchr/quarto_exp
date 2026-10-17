@@ -7,12 +7,17 @@ subtitle: "Smoking and alcohol consumption patterns"
 #| echo: false
 import sys
 sys.path.insert(0, "docs/assets")
-from portal_helpers import load, fig_defaults, kpi_row, data_note, COLORS
+from portal_helpers import load, fig_defaults, kpi_row, data_note, COLORS, blue_ramp
 import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd
 
 data = load("behaviours")
+
+# Smoking intensity, least to most; darker blue = more smoking.
+SMOKING = ["Never", "Former", "Current – occasional", "Current – daily"]
+SMOKING_COLORS = dict(zip(SMOKING, reversed(blue_ramp(len(SMOKING)))))
+SEGMENT_GAP = dict(color="white", width=1.5)  # separates stacked segments
 ```
 
 Health behaviours such as tobacco use and alcohol consumption are key modifiable risk factors.
@@ -26,18 +31,24 @@ This section examines their distribution across the survey population.
 
 ```{python}
 #| echo: false
-smoking_df = pd.DataFrame(data["smoking_overall"])
+smoking_df = pd.DataFrame(data["smoking_overall"]).set_index("smoking_status").reindex(SMOKING)
 
-fig = go.Figure(go.Pie(
-    labels=smoking_df["smoking_status"],
-    values=smoking_df["pct"],
-    hole=0.45,
-    marker_colors=[COLORS["success"], COLORS["secondary"], COLORS["warning"], COLORS["danger"]],
-    textinfo="label+percent",
-    hovertemplate="%{label}: %{value:.1f}%<extra></extra>",
+fig = go.Figure(go.Bar(
+    x=smoking_df["pct"],
+    y=SMOKING,
+    orientation="h",
+    marker_color=[SMOKING_COLORS[s] for s in SMOKING],
+    text=[f"{p:.1f}%" for p in smoking_df["pct"]],
+    textposition="outside",
+    cliponaxis=False,
+    hovertemplate="%{y}: %{x:.1f}%<extra></extra>",
 ))
-fig.update_layout(showlegend=True)
-fig_defaults(fig, "Smoking Status — All Respondents", height=380).show()
+fig.update_layout(
+    xaxis_title="% of respondents",
+    yaxis=dict(autorange="reversed"),
+    showlegend=False,
+)
+fig_defaults(fig, "Smoking Status — All Respondents", height=320).show()
 ```
 
 ---
@@ -51,17 +62,15 @@ fig_defaults(fig, "Smoking Status — All Respondents", height=380).show()
 #| echo: false
 by_age_df = pd.DataFrame(data["smoking_by_age"])
 age_groups = sorted(by_age_df["age_group"].unique().tolist())
-statuses   = ["Never", "Former", "Current – occasional", "Current – daily"]
-pal = [COLORS["success"], COLORS["secondary"], COLORS["warning"], COLORS["danger"]]
-
 fig = go.Figure()
-for status, clr in zip(statuses, pal):
+for status in SMOKING:
     subset = by_age_df[by_age_df["smoking_status"] == status]
     vals   = []
     for ag in age_groups:
         row = subset[subset["age_group"] == ag]
         vals.append(float(row["pct"].values[0]) if len(row) else 0)
-    fig.add_trace(go.Bar(name=status, x=age_groups, y=vals, marker_color=clr))
+    fig.add_trace(go.Bar(name=status, x=age_groups, y=vals,
+                         marker=dict(color=SMOKING_COLORS[status], line=SEGMENT_GAP)))
 
 fig.update_layout(
     barmode="stack",
@@ -90,7 +99,8 @@ order  = [
 alc_df["alcohol_frequency"] = pd.Categorical(alc_df["alcohol_frequency"], categories=order, ordered=True)
 alc_df = alc_df.sort_values("alcohol_frequency")
 
-pal_alc = ["#2e8b57", "#5a8fa3", "#1a7f8e", "#e6a817", "#c0392b"]
+# Frequency is an ordered scale: darker blue = more often.
+pal_alc = list(reversed(blue_ramp(len(order))))
 fig = go.Figure(go.Bar(
     x=alc_df["alcohol_frequency"],
     y=alc_df["pct"],

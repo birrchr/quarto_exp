@@ -653,7 +653,10 @@ $secondary: #5a8fa3;
 ### Interactive R dashboard (Shinylive)
 
 `docs/dashboard.qmd` embeds an R Shiny app compiled to WebAssembly, so it runs in the
-visitor's browser with no server. Its data is fetched and aggregated **at build time**:
+visitor's browser with no server. It shows national headline tiles, one dot-plot
+small multiple per indicator (all five side by side, against the national figure), and a
+group × indicator heatmap; clicking a dot highlights that group everywhere. Its data is
+fetched and aggregated **at build time**:
 
 ```
 secure source ──► scripts/fetch_and_aggregate.R ──► data/processed_summary.csv (gitignored)
@@ -663,6 +666,9 @@ app/app.R ──────► scripts/build_dashboard_app.R ◄─────
                           ▼
               docs/_dashboard_app.qmd (gitignored) ──► included by docs/dashboard.qmd
 ```
+
+The app preloads plotly's JavaScript (`PLOTLY_DEPS` in `app/app.R`). Without that, several
+plotly charts rendering at once in Shinylive fail with "Plotly is not defined".
 
 - **Data source** is chosen by environment variable. This repo uses `DATA_LOCAL_FILE`
   pointing at the synthetic `data/raw/microdata.parquet`. For a real secure source, set

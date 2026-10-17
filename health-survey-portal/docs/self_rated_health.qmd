@@ -7,15 +7,17 @@ subtitle: "How Canadians perceive their own general health"
 #| echo: false
 import sys
 sys.path.insert(0, "docs/assets")
-from portal_helpers import load, fig_defaults, kpi_row, data_note, COLORS
+from portal_helpers import load, fig_defaults, kpi_row, data_note, COLORS, blue_ramp
 import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd
 
 data = load("self_rated_health")
 order = data["order"]
-colors = COLORS["health_scale"]  # Poor → Excellent
+# order runs Excellent → Poor; darkest blue = Excellent, lightest = Poor.
+colors = blue_ramp(len(order))
 color_map = dict(zip(order, colors))
+SEGMENT_GAP = dict(color="white", width=1.5)  # separates stacked segments
 ```
 
 Self-rated health (SRH) is one of the strongest single predictors of future health outcomes,
@@ -69,7 +71,7 @@ for srh_cat, clr in zip(order, colors):
         name=srh_cat,
         x=age_groups,
         y=vals,
-        marker_color=clr,
+        marker=dict(color=clr, line=SEGMENT_GAP),
         hovertemplate=f"{srh_cat}: %{{y:.1f}}%<extra></extra>",
     ))
 
@@ -105,7 +107,7 @@ for srh_cat, clr in zip(order, colors):
         name=srh_cat,
         x=income_cats,
         y=vals,
-        marker_color=clr,
+        marker=dict(color=clr, line=SEGMENT_GAP),
     ))
 
 fig.update_layout(barmode="stack", yaxis_title="% of income group",
@@ -135,7 +137,7 @@ for srh_cat, clr in zip(order, colors):
         name=srh_cat,
         x=genders,
         y=vals,
-        marker_color=clr,
+        marker=dict(color=clr, line=SEGMENT_GAP),
     ))
 
 fig.update_layout(barmode="stack", yaxis_title="% of gender group", xaxis_title="")

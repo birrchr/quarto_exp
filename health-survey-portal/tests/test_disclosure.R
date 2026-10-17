@@ -99,3 +99,12 @@ test_that("only allowlisted columns are read from the source", {
   read <- suppressMessages(open_source())
   expect_identical(colnames(read), ALLOWED_COLUMNS)
 })
+
+test_that("national totals are published as dimension 'overall'", {
+  overall <- out[out$dimension == "overall", ]
+  expect_setequal(overall$gender, c("All", unique(src$gender)))
+  expect_true(all(overall$group == "All"))
+  all_row <- overall[overall$gender == "All", ]
+  expect_equal(all_row$n, ROUND_BASE * round(nrow(src) / ROUND_BASE))
+  expect_equal(all_row$pct_any_chronic, round(100 * mean(src$any_chronic), 1))
+})
