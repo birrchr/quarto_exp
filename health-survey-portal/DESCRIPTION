@@ -5,23 +5,23 @@ Description: Not an installable package. Declares the R packages needed to
     fetch and aggregate survey data at build time and to render the
     Shinylive (WebAssembly) dashboard. Install with
     `Rscript -e 'remotes::install_deps(dependencies = TRUE)'`.
-    The browser-side app's packages (shiny, bslib, plotly) are fetched
-    from the webR repository at runtime and need no local install, but are
-    listed under Suggests so `shiny::runApp("app")` works for local testing.
+    The app's packages (shiny, bslib, plotly) must also be installed at
+    build time: shinylive reads their local installs to decide which
+    WebAssembly packages to bundle into the page.
 License: Internal project, not for distribution
 Encoding: UTF-8
 Imports:
+    bslib,
     DBI,
     dbplyr,
     dplyr,
     httr2,
     odbc,
+    plotly,
     quarto,
     rlang,
+    shiny,
     shinylive
 Suggests:
     arrow,
-    bslib,
-    plotly,
-    shiny,
     testthat
