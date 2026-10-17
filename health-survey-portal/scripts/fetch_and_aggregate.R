@@ -132,6 +132,7 @@ open_db <- function(conn_str) {
 # ---------------------------------------------------------------------------
 
 # One row per (dimension level × gender). Runs in-database for DBI sources.
+# dim = NULL gives the national totals (dimension "overall", group "All").
 summarise_cells <- function(src, dim, split = NULL) {
   src |>
     group_by(!!!rlang::syms(c(dim, split))) |>
@@ -146,8 +147,8 @@ summarise_cells <- function(src, dim, split = NULL) {
     ) |>
     collect() |>
     mutate(
-      dimension = dim,
-      group     = coalesce(as.character(.data[[dim]]), "Not stated"),
+      dimension = if (is.null(dim)) "overall" else dim,
+      group     = if (is.null(dim)) "All" else coalesce(as.character(.data[[dim]]), "Not stated"),
       gender    = if (is.null(split)) "All" else coalesce(as.character(.data[[split]]), "Not stated"),
       n         = as.integer(n)
     ) |>
@@ -182,9 +183,10 @@ apply_disclosure_control <- function(cells) {
     )
 }
 
-# All published cells: each dimension overall and split by gender.
+# All published cells: national totals plus each dimension, each for all
+# respondents and split by gender.
 build_summary <- function(src) {
-  cells <- bind_rows(lapply(DIMENSIONS, function(dim) {
+  cells <- bind_rows(lapply(c(list(NULL), as.list(DIMENSIONS)), function(dim) {
     bind_rows(summarise_cells(src, dim), summarise_cells(src, dim, SPLIT))
   }))
 

@@ -28,7 +28,7 @@ block <- c(
   "",
   "```{shinylive-r}",
   "#| standalone: true",
-  "#| viewerHeight: 900",
+  "#| viewerHeight: 1450",
   "## file: app.R",
   app_lines,
   "",

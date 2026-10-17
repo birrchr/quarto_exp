@@ -1,18 +1,20 @@
 ---
 title: "Interactive Data Summary"
-subtitle: "Explore chronic conditions, access to care, BMI and mental health by group"
-format: html
+subtitle: "Five health indicators side by side, by province, age, income or education"
+format:
+  html:
+    page-layout: full
+    toc: false
 engine: markdown
 filters:
   - shinylive
 ---
 
-This dashboard is an R Shiny app compiled to WebAssembly with
-[Shinylive](https://shiny.posit.co/py/docs/shinylive.html). It runs entirely in your
-browser — there is no server behind it. The app may take a few seconds to load the
-first time.
+An R Shiny app compiled to WebAssembly with [Shinylive](https://shiny.posit.co/r/getstarted/shiny-basics/lesson1/):
+it runs entirely in your browser, with no server behind it, and takes a few seconds to
+load the first time. Click any dot to highlight that group in every chart.
 
-::: {.callout-note}
+::: {.callout-note collapse="true"}
 ## What data does this page contain?
 Only a pre-aggregated, disclosure-controlled summary table produced at build time.
 Cells with fewer than 10 respondents are suppressed, along with enough neighbouring
@@ -21,4 +23,6 @@ are rounded to the nearest 5. Estimates are unweighted, matching the Results pag
 No individual-level records are included. See [Methods](methods.qmd).
 :::
 
+::: {.column-screen-inset}
 {{< include _dashboard_app.qmd >}}
+:::
