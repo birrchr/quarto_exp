@@ -30,17 +30,11 @@ their concentration by age group, and the gradient with household income.
 overall = sorted(data["overall"], key=lambda r: r["prevalence"], reverse=True)
 labels  = [r["condition"] for r in overall]
 vals    = [r["prevalence"] for r in overall]
-bar_colors = [
-    COLORS["danger"] if v > 20 else
-    COLORS["warning"] if v > 10 else
-    COLORS["primary"]
-    for v in vals
-]
 
 fig = go.Figure(go.Bar(
     x=vals, y=labels,
     orientation="h",
-    marker_color=bar_colors,
+    marker_color=COLORS["primary"],
     text=[f"{v}%" for v in vals],
     textposition="outside",
     hovertemplate="%{y}: %{x}%<extra></extra>",
@@ -122,13 +116,7 @@ multi = pd.DataFrame(data["multimorbidity"])
 fig = go.Figure(go.Bar(
     x=multi["chronic_count"].astype(str) + " condition(s)",
     y=multi["pct"],
-    marker_color=[
-        COLORS["success"] if n == 0 else
-        COLORS["primary"] if n == 1 else
-        COLORS["warning"] if n <= 3 else
-        COLORS["danger"]
-        for n in multi["chronic_count"]
-    ],
+    marker_color=COLORS["primary"],
     text=[f"{p}%" for p in multi["pct"]],
     textposition="outside",
     hovertemplate="Count: %{x}, %{y:.1f}% of respondents<extra></extra>",

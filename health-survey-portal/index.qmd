@@ -10,7 +10,7 @@ format:
 import sys, json
 from pathlib import Path
 sys.path.insert(0, "docs/assets")
-from portal_helpers import load, kpi_row, COLORS
+from portal_helpers import load, kpi_row, COLORS, blue_ramp
 import plotly.graph_objects as go
 from portal_helpers import fig_defaults
 
@@ -39,11 +39,11 @@ pre-aggregated from survey microdata — **no individual-level data is published
 #| echo: false
 kpi_row([
     (f"{int(kpis['n_respondents']):,}", "Survey Respondents", "👥", COLORS["primary"]),
-    (f"{kpis['pct_family_doctor']}%", "Have a Family Doctor", "🏥", COLORS["success"]),
-    (f"{kpis['pct_any_chronic']}%", "Any Chronic Condition", "💊", COLORS["warning"]),
-    (f"{kpis['pct_unmet_need']}%", "Unmet Care Need", "⚠️", COLORS["danger"]),
-    (f"{kpis['mean_bmi']}", "Mean BMI", "⚖️", COLORS["secondary"]),
-    (f"{kpis['mean_mh_score']}", "Mean PHQ-4 Score", "🧠", "#8e6a1a"),
+    (f"{kpis['pct_family_doctor']}%", "Have a Family Doctor", "🏥", COLORS["primary"]),
+    (f"{kpis['pct_any_chronic']}%", "Any Chronic Condition", "💊", COLORS["primary"]),
+    (f"{kpis['pct_unmet_need']}%", "Unmet Care Need", "⚠️", COLORS["primary"]),
+    (f"{kpis['mean_bmi']}", "Mean BMI", "⚖️", COLORS["primary"]),
+    (f"{kpis['mean_mh_score']}", "Mean PHQ-4 Score", "🧠", COLORS["primary"]),
 ])
 ```
 
@@ -56,7 +56,7 @@ kpi_row([
 order  = srh["order"]
 totals = {r["self_rated_health"]: r["pct"] for r in srh["overall"]}
 pcts   = [totals.get(h, 0) for h in order]
-colors = COLORS["health_scale"]
+colors = blue_ramp(len(order))  # darkest = Excellent
 
 fig = go.Figure(go.Bar(
     x=order, y=pcts,

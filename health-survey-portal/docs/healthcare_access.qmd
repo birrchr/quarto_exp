@@ -7,7 +7,7 @@ subtitle: "Family doctors, unmet needs, and emergency department utilisation"
 #| echo: false
 import sys
 sys.path.insert(0, "docs/assets")
-from portal_helpers import load, fig_defaults, kpi_row, data_note, COLORS
+from portal_helpers import load, fig_defaults, kpi_row, data_note, COLORS, blue_ramp
 import plotly.graph_objects as go
 import pandas as pd
 
@@ -35,8 +35,7 @@ fig.add_trace(go.Bar(
     x=prov_df["pct_family_doctor"],
     y=prov_df["province"],
     orientation="h",
-    marker_color=COLORS["primary"],
-    opacity=0.85,  # <-- Added here
+    marker_color=blue_ramp(2)[0],
     hovertemplate="%{y}: %{x:.1f}%<extra>Family Doctor</extra>",
 ))
 fig.add_trace(go.Bar(
@@ -44,15 +43,15 @@ fig.add_trace(go.Bar(
     x=prov_df["pct_unmet_need"],
     y=prov_df["province"],
     orientation="h",
-    marker_color=COLORS["danger"],
-    opacity=0.85,  # <-- Added here
+    marker_color=blue_ramp(2)[1],
     hovertemplate="%{y}: %{x:.1f}%<extra>Unmet Need</extra>",
 ))
 fig.update_layout(
-    barmode="overlay",
+    barmode="group",
+    bargap=0.25,
+    bargroupgap=0.08,
     xaxis_title="% of respondents",
     yaxis=dict(tickfont=dict(size=12)),
-    # opacity removed from here
 )
 fig_defaults(fig, "Family Doctor Access & Unmet Need by Province", height=480).show()
 
@@ -100,12 +99,7 @@ er_df = pd.DataFrame(data["er_distribution"])
 fig = go.Figure(go.Bar(
     x=[f"{v} visit{'s' if v != 1 else ''}" for v in er_df["visits"]],
     y=er_df["pct"],
-    marker_color=[
-        COLORS["success"] if v == 0 else
-        COLORS["warning"] if v <= 2 else
-        COLORS["danger"]
-        for v in er_df["visits"]
-    ],
+    marker_color=COLORS["primary"],
     text=[f"{p}%" for p in er_df["pct"]],
     textposition="outside",
     hovertemplate="%{x}: %{y:.1f}%<extra></extra>",
@@ -134,10 +128,10 @@ fig = go.Figure(go.Scatter(
     x=unmet_df["income_bracket"],
     y=unmet_df["pct_unmet_need"],
     mode="lines+markers",
-    line=dict(color=COLORS["danger"], width=3),
-    marker=dict(size=10, color=COLORS["danger"]),
+    line=dict(color=COLORS["primary"], width=3),
+    marker=dict(size=10, color=COLORS["primary"]),
     fill="tozeroy",
-    fillcolor="rgba(192,57,43,0.1)",
+    fillcolor="rgba(28,92,171,0.1)",
     hovertemplate="%{x}: %{y:.1f}% unmet need<extra></extra>",
 ))
 fig.update_layout(

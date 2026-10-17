@@ -45,9 +45,12 @@ GROUP_ORDER <- list(
                      "Undergraduate degree", "Graduate degree")
 )
 
-# Categorical slots 1–3 (validated all-pairs). "Prefer not to say" is mostly
-# suppressed and would need a 4th hue, so it is shown in the table only.
-GENDER_COLORS <- c("Woman" = "#2a78d6", "Man" = "#eb6834", "Non-binary / Other" = "#1baf7a")
+# Monochrome blue throughout, so colour never implies good or bad. The three
+# gender series are validated ramp steps and also differ in marker shape.
+# "Prefer not to say" is mostly suppressed, so it is shown in the table only.
+GENDER_COLORS  <- c("Woman" = "#104281", "Man" = "#2a78d6", "Non-binary / Other" = "#86b6ef")
+GENDER_SYMBOLS <- c("Woman" = "circle", "Man" = "diamond", "Non-binary / Other" = "square")
+GENDER_GLYPHS  <- c("Woman" = "●", "Man" = "◆", "Non-binary / Other" = "■")
 
 INK       <- "#0b0b0b"
 INK_2     <- "#52514e"
@@ -55,8 +58,8 @@ MUTED     <- "#898781"
 GRID      <- "#e1e0d9"
 BASELINE  <- "#c3c2b7"
 SURFACE   <- "#fcfcfb"
-ACCENT    <- "#2a78d6"
-DIVERGING <- list(c(0, "#2a78d6"), c(0.5, "#f0efec"), c(1, "#e34948"))
+ACCENT    <- "#1c5cab"
+SEQUENTIAL <- list(c(0, "#cde2fb"), c(1, "#3987e5"))
 FONT      <- list(family = "system-ui, -apple-system, 'Segoe UI', sans-serif", size = 12, color = INK_2)
 
 # Shinylive loads a widget's JavaScript when its first output arrives, so
@@ -128,6 +131,7 @@ ui <- page_sidebar(
                   font-size: .85rem; color: #52514e; margin: .25rem 0 .75rem; }
     .legend-row .swatch { display: inline-block; width: 10px; height: 10px;
                           border-radius: 50%; margin-right: .4rem; vertical-align: middle; }
+    .legend-row .glyph { margin-right: .35rem; font-size: 1rem; line-height: 1; }
     .legend-row .rule { display: inline-block; width: 16px; border-top: 2px dashed #898781;
                         margin-right: .4rem; vertical-align: middle; }
   "))),
@@ -149,12 +153,12 @@ ui <- page_sidebar(
   layout_column_wrap(width = "260px", fill = FALSE, heights_equal = "row", !!!facet_cards),
   card(
     full_screen = TRUE,
-    card_header("Every indicator at once: how each group compares with the national figure"),
+    card_header("Every indicator at once: which groups are highest and lowest"),
     plotlyOutput("heatmap", height = "440px"),
     card_footer(
       class = "small text-muted",
-      "Colour shows the difference from the national figure, relative to it ",
-      "(blue below, red above). Cell labels show the group's value. All respondents."
+      "Within each indicator, darker = higher value. Hover a cell for its difference ",
+      "from the national figure. All respondents."
     )
   ),
   accordion(
@@ -232,7 +236,8 @@ facet_plot <- function(rows, ind, dim, view, highlight, source) {
                         fmt_value(dg$value, ind$pct), fmt_n(dg$n))
       p <- add_markers(
         p, data = dg, x = ~value, y = ~group, customdata = ~group, name = g,
-        marker = list(size = 10, color = GENDER_COLORS[[g]], opacity = dimmed(dg$group),
+        marker = list(size = 11, color = GENDER_COLORS[[g]], symbol = GENDER_SYMBOLS[[g]],
+                      opacity = dimmed(dg$group),
                       line = list(color = SURFACE, width = 2)),
         hovertext = ~tip, hoverinfo = "text"
       )
@@ -251,7 +256,13 @@ heatmap_plot <- function(rows, dim, highlight) {
   values <- matrix(values, nrow = length(groups))
   nat <- unlist(national[INDICATORS$id])
   rel <- sweep(values, 2, nat, function(v, n) 100 * (v - n) / n)
-  limit <- max(abs(rel), na.rm = TRUE)
+  # Shade each indicator on its own scale: lightest = lowest group, darkest =
+  # highest. The indicators have different units, so a shared scale wouldn't work.
+  shade <- apply(values, 2, function(v) {
+    span <- diff(range(v, na.rm = TRUE))
+    if (span == 0) rep(0.5, length(v)) else (v - min(v, na.rm = TRUE)) / span
+  })
+  shade <- matrix(shade, nrow = length(groups))
 
   labels <- sapply(seq_len(nrow(INDICATORS)), function(j) fmt_value(values[, j], INDICATORS$pct[j]))
   labels <- matrix(labels, nrow = length(groups))
@@ -269,12 +280,10 @@ heatmap_plot <- function(rows, dim, highlight) {
   ))
 
   plot_ly(
-    x = INDICATORS$label, y = groups, z = rel, type = "heatmap",
-    zmin = -limit, zmax = limit, zmid = 0, colorscale = DIVERGING,
+    x = INDICATORS$label, y = groups, z = shade, type = "heatmap",
+    zmin = 0, zmax = 1, colorscale = SEQUENTIAL, showscale = FALSE,
     text = labels, texttemplate = "%{text}", textfont = list(color = INK, size = 12),
-    hovertext = tips, hoverinfo = "text", xgap = 2, ygap = 2,
-    colorbar = list(title = list(text = "vs national", font = FONT), ticksuffix = "%",
-                    thickness = 10, outlinewidth = 0, tickfont = FONT)
+    hovertext = tips, hoverinfo = "text", xgap = 2, ygap = 2
   ) |>
     layout(
       font = FONT,
@@ -331,7 +340,8 @@ server <- function(input, output, session) {
       list(tags$span(tags$span(class = "swatch", style = sprintf("background:%s", ACCENT)), "Group value"))
     } else {
       lapply(names(GENDER_COLORS), function(g) {
-        tags$span(tags$span(class = "swatch", style = sprintf("background:%s", GENDER_COLORS[[g]])), g)
+        tags$span(tags$span(class = "glyph", style = sprintf("color:%s", GENDER_COLORS[[g]]),
+                            GENDER_GLYPHS[[g]]), g)
       })
     }
     div(class = "legend-row", items,
